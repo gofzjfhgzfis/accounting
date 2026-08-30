@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# PyInstaller
+build/
+dist/
+*.spec
+
+# وێنەی تاقیکردنەوەی ئایکۆنەکان (بە make_icons.py درووست دەبنەوە)
+preview_*.png
+
+# Database / backups / local config — never commit real business data
+*.db
+*.db-journal
+*.csv
+config.ini
+
+# OS
+Thumbs.db
+.DS_Store
+
+# ئامرازە ناوخۆییەکان
+.claude/

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>سیستەمی حیسابات — دووکان و کارگە</title>
+<meta name="description" content="دوو بەرنامەی حیساباتی سەربەخۆ: یەکێک بۆ دووکانی جوملەی ڕۆن، یەکێک بۆ کارگەی پاککردنەوە. بەبێ ئینتەرنێت.">
+
+<!-- ================================================================
+     لینکی داگرتن: ئەگەر فایلی EXE لە GitHub Releases دانرا،
+     تەنها ئەم دوو href ـە بگۆڕە بۆ لینکی ڕاستەقینەی Release.
+     ================================================================ -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Noto+Kufi+Arabic:wght@500;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --ink:#1A1D24;        /* قیر */
+  --steel:#232A34;      /* تەنەکەی پۆڵا */
+  --line:#3B4555;
+  --gold:#DEB145;
+  --amber:#F0BC5E;      /* ڕەنگی ڕۆن لە شووشەدا */
+  --bone:#E8EAF0;
+  --dim:#98A2B3;
+  --display:"Noto Kufi Arabic",system-ui,sans-serif;
+  --body:"IBM Plex Sans Arabic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--ink);color:var(--bone);
+  font-family:var(--body);font-size:17px;line-height:1.9;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+.eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:.22em;
+  color:var(--dim);text-transform:uppercase;direction:ltr;display:inline-block;
+}
+
+/* ---------- سەرەوە ---------- */
+.bar{
+  position:sticky;top:0;z-index:20;background:rgba(26,29,36,.86);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+}
+.bar .wrap{display:flex;align-items:center;justify-content:space-between;height:74px}
+.mark{font-family:var(--mono);font-size:15px;letter-spacing:.3em;color:var(--gold);direction:ltr}
+.bar nav{display:flex;gap:30px;font-size:15px;color:var(--dim)}
+.bar nav a{transition:color .25s ease}
+.bar nav a:hover{color:var(--bone)}
+
+/* ---------- هێرۆ ---------- */
+.hero{padding:96px 0 88px;border-bottom:1px solid var(--line)}
+.hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:72px;align-items:center}
+.hero h1{
+  font-family:var(--display);font-weight:700;line-height:1.55;
+  font-size:clamp(31px,4.4vw,52px);margin:20px 0 24px;
+}
+.hero h1 em{font-style:normal;color:var(--gold)}
+.hero p{color:var(--dim);font-size:18px;max-width:44ch}
+
+/* ---------- پلێتی زانیاری (نیشانەی سەرەکی) ---------- */
+.plates{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.plate{
+  background:linear-gradient(180deg,#2A3140,#212832);
+  border:1px solid var(--line);border-radius:20px;
+  box-shadow:0 20px 50px rgba(0,0,0,.32);overflow:hidden;
+  transition:transform .3s ease,box-shadow .3s ease;
+}
+.plate:hover{transform:translateY(-4px);box-shadow:0 28px 64px rgba(0,0,0,.4)}
+.plate__head{
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--gold);color:#13150A;padding:14px 22px;
+  font-family:var(--mono);font-size:12px;letter-spacing:.16em;direction:ltr;
+}
+.plate__rows{padding:10px 22px}
+.prow{
+  display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+  padding:16px 0;border-bottom:1px dashed var(--line);font-size:15px;
+}
+.prow:last-child{border-bottom:0}
+.prow span{color:var(--dim)}
+.prow b{font-family:var(--mono);font-weight:500;color:var(--bone);direction:ltr;font-size:14px}
+.plate__foot{padding:24px 22px 28px;border-top:1px solid var(--line);background:#1F2632}
+.cta{
+  display:block;text-align:center;background:var(--amber);color:#13150A;
+  font-family:var(--display);font-weight:700;font-size:18px;
+  padding:18px;border-radius:14px;
+  transition:transform .25s ease,filter .25s ease,box-shadow .25s ease;
+}
+.cta:hover{filter:brightness(1.06);transform:translateY(-3px);box-shadow:0 14px 32px rgba(240,188,94,.22)}
+.plate__foot small{
+  display:block;text-align:center;margin-top:14px;
+  font-family:var(--mono);font-size:12px;color:var(--dim);direction:ltr;
+}
+
+/* ---------- بەشەکان ---------- */
+.sec{padding:92px 0;border-bottom:1px solid var(--line)}
+.sec--tint{background:#1F2632}
+.sec h2{font-family:var(--display);font-weight:700;font-size:clamp(24px,3vw,33px);margin:14px 0 10px}
+.sec .lede{color:var(--dim);max-width:52ch;margin-bottom:52px}
+
+/* ---------- زنجیرەی بەرهەمهێنان ---------- */
+.chain{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);
+  border-radius:20px;overflow:hidden;
+}
+.link{background:var(--steel);padding:32px 22px;text-align:center;transition:background .25s ease}
+.link:hover{background:#2A3140}
+.link i{
+  display:block;font-family:var(--mono);font-size:12px;color:var(--gold);
+  letter-spacing:.14em;font-style:normal;margin-bottom:10px;direction:ltr;
+}
+.link h3{font-family:var(--display);font-size:17px;font-weight:500;margin-bottom:8px}
+.link p{font-size:14px;color:var(--dim);line-height:1.75}
+.chain__note{margin-top:24px;font-size:15px;color:var(--dim)}
+.chain__note b{color:var(--amber);font-weight:500}
+
+/* ---------- تایبەتمەندییەکان ---------- */
+.feats{border-top:1px solid var(--line)}
+.feat{
+  display:grid;grid-template-columns:150px 1fr;gap:32px;
+  padding:28px 18px;border-bottom:1px solid var(--line);
+  border-radius:16px;transition:background .25s ease;
+}
+.feat:hover{background:#232A34}
+.feat .tag{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--gold);direction:ltr;padding-top:4px}
+.feat h3{font-family:var(--display);font-size:18px;font-weight:500;margin-bottom:6px}
+.feat p{color:var(--dim);font-size:16px}
+
+/* ---------- هەنگاوەکان ---------- */
+.steps{max-width:720px}
+.step{display:grid;grid-template-columns:52px 1fr;gap:26px;padding:26px 0;border-bottom:1px solid var(--line)}
+.step__n{font-family:var(--mono);font-size:28px;color:var(--gold);line-height:1.2}
+.step h3{font-family:var(--display);font-size:18px;font-weight:500;margin-bottom:7px}
+.step p{color:var(--dim);font-size:16px}
+.step code{
+  font-family:var(--mono);font-size:14px;background:var(--steel);
+  border:1px solid var(--line);padding:4px 10px;border-radius:8px;color:var(--amber);direction:ltr;
+}
+.reqs{
+  margin-top:38px;max-width:720px;border-right:3px solid var(--gold);
+  background:var(--steel);padding:22px 26px;font-size:15px;color:var(--dim);
+  border-radius:16px;
+}
+
+/* ---------- کۆتایی ---------- */
+.end{text-align:center;padding:100px 0}
+.end h2{font-family:var(--display);font-size:clamp(24px,3vw,33px);margin-bottom:12px}
+.end p{color:var(--dim);margin-bottom:34px}
+.end .cta{display:inline-block;padding:18px 58px}
+footer{border-top:1px solid var(--line);padding:34px 0;text-align:center;font-size:14px;color:var(--dim)}
+
+/* ---------- جوڵە ---------- */
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.plate .prow,.plate__foot{animation:rise .8s cubic-bezier(.22,.61,.36,1) both}
+.prow:nth-child(1){animation-delay:.12s}
+.prow:nth-child(2){animation-delay:.22s}
+.prow:nth-child(3){animation-delay:.32s}
+.prow:nth-child(4){animation-delay:.42s}
+.prow:nth-child(5){animation-delay:.52s}
+.plate__foot{animation-delay:.62s}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+
+/* ---------- مۆبایل ---------- */
+@media (max-width:900px){
+  .hero .wrap{grid-template-columns:1fr;gap:44px}
+  .plates{grid-template-columns:1fr}
+  .chain{grid-template-columns:1fr 1fr}
+  .bar nav{display:none}
+}
+@media (max-width:560px){
+  .chain{grid-template-columns:1fr}
+  .feat{grid-template-columns:1fr;gap:6px}
+  .hero{padding:56px 0 52px}
+  .sec{padding:58px 0}
+}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="wrap">
+    <div class="mark">سیستەمی حیسابات</div>
+    <nav>
+      <a href="#chain">چۆن کاردەکات</a>
+      <a href="#feats">تایبەتمەندییەکان</a>
+      <a href="#modes">دوو سیستەم</a>
+      <a href="#install">دامەزراندن</a>
+    </nav>
+  </div>
+</div>
+
+<!-- ================= هێرۆ ================= -->
+<div class="hero">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">Windows Desktop · v1.0 · Free</span>
+      <h1>دوو سیستەمی سەربەخۆ — یەکێک بۆ <em>دووکان</em>، یەکێک بۆ <em>کارگە</em></h1>
+      <p>هەریەکەیان بەرنامەیەکی تەواوی جیاوازە بە داتابەیسی خۆیەوە.
+         ئەوەی پێویستتە دایبگرە — یان هەردووکیان، لەسەر دوو کۆمپیوتەری جیاواز.
+         هیچ ئەکاونت و ئینتەرنێتێک پێویست نییە.</p>
+    </div>
+
+    <div class="plates">
+      <div class="plate">
+        <div class="plate__head"><span>WHOLESALE</span><span>GB-SHOP</span></div>
+        <div class="plate__rows">
+          <div class="prow"><span>بۆ</span><b>Shop &amp; counter</b></div>
+          <div class="prow"><span>لەخۆدەگرێت</span><b>Sales · Debts · Stock</b></div>
+          <div class="prow"><span>پسووڵە</span><b>PDF export</b></div>
+          <div class="prow"><span>داتابەیس</span><b>oil_shop.db</b></div>
+        </div>
+        <div class="plate__foot">
+          <a class="cta" href="OilShopAccounting-Setup.exe" download>سیستەمی دووکان</a>
+          <small>OilShopAccounting-Setup.exe</small>
+        </div>
+      </div>
+
+      <div class="plate">
+        <div class="plate__head"><span>PLANT</span><span>GB-FACT</span></div>
+        <div class="plate__rows">
+          <div class="prow"><span>بۆ</span><b>Blending plant</b></div>
+          <div class="prow"><span>لەخۆدەگرێت</span><b>Batches · Raw · Costs</b></div>
+          <div class="prow"><span>ئەنجام</span><b>Cost per unit</b></div>
+          <div class="prow"><span>داتابەیس</span><b>factory.db</b></div>
+        </div>
+        <div class="plate__foot">
+          <a class="cta" href="FactoryAccounting-Setup.exe" download>سیستەمی کارگە</a>
+          <small>FactoryAccounting-Setup.exe</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= زنجیرەی کار ================= -->
+<div class="sec" id="chain">
+  <div class="wrap">
+    <span class="eyebrow">Workflow</span>
+    <h2>زنجیرەی کارەکەت، وەک خۆی</h2>
+    <p class="lede">هەر هەنگاوێک داتاکەی خۆی دەداتە هەنگاوی دواتر — بێ ئەوەی دووبارە شتێک بنووسیتەوە.</p>
+
+    <div class="chain">
+      <div class="link"><i>01</i><h3>مادەی خام</h3><p>کڕین تۆمار دەکرێت و تێچووی ناوەند دەگۆڕدرێت</p></div>
+      <div class="link"><i>02</i><h3>بەرهەمهێنان</h3><p>مادە کەم دەکرێتەوە، مووچە و کارەبا زیاد دەکرێن</p></div>
+      <div class="link"><i>03</i><h3>مەخزەن</h3><p>بەرهەم بە تێچووی ڕاستەقینەی خۆی دەچێتە ژوورەوە</p></div>
+      <div class="link"><i>04</i><h3>فرۆشتن</h3><p>پسووڵە دەردەچێت و قەرزی کڕیار نوێ دەبێتەوە</p></div>
+      <div class="link"><i>05</i><h3>قازانج</h3><p>فرۆشتن کەم تێچوو کەم مەسروف = ژمارەی ڕاست</p></div>
+    </div>
+    <p class="chain__note">
+      لەبەر ئەوەی تێچوو لە هەنگاوی دووەمەوە هەڵدەگیرێت، <b>قازانجەکە خەمڵاندن نییە</b> —
+      حیسابکراوە لەسەر ئەو مادە و مووچەیەی بەڕاستی خەرجکراون.
+    </p>
+  </div>
+</div>
+
+<!-- ================= تایبەتمەندییەکان ================= -->
+<div class="sec sec--tint" id="feats">
+  <div class="wrap">
+    <span class="eyebrow">Modules</span>
+    <h2>هەشت بەش، یەک داتابەیس</h2>
+    <p class="lede">هەموویان لەسەر یەک داتا کاردەکەن، بۆیە هەر گۆڕانکارییەک یەکسەر لە هەموو شوێنێک دەردەکەوێت.</p>
+
+    <div class="feats">
+      <div class="feat"><div class="tag">SALES</div>
+        <div><h3>فرۆشتن و پسووڵە</h3>
+        <p>پسووڵە بە چەند کلیکێک، لەگەڵ داشکاندن و پارەی دراو. هەناردەکردن بۆ PDF بۆ چاپ یان ناردن.</p></div></div>
+
+      <div class="feat"><div class="tag">DEBTS</div>
+        <div><h3>کڕیاران و قەرز</h3>
+        <p>قەرزی هەر کڕیارێک خۆکارانە حیساب دەکرێت. تۆمارکردنی پارەدان و کەشف حسابی تەواو.</p></div></div>
+
+      <div class="feat"><div class="tag">STOCK</div>
+        <div><h3>مەخزەن</h3>
+        <p>مادەی خام و بەرهەم بە جیا. کاتێک بڕێک لە سنووری دیاریکراو کەمتر بێت، ڕیزەکە سوور دەبێت.</p></div></div>
+
+      <div class="feat"><div class="tag">PROD</div>
+        <div><h3>بەرهەمهێنان</h3>
+        <p>هەر بەچێک مادەکانی خۆی، مووچە و تێچووی گشتی هەڵدەگرێت و تێچووی یەک لیتر دیاری دەکات.</p></div></div>
+
+      <div class="feat"><div class="tag">COSTS</div>
+        <div><h3>مەسروفات و مووچە</h3>
+        <p>کارەبا، کرێ، گواستنەوە و مووچەی کارمەندان — هەموویان لە قازانجی سافیدا دێنە ژمێریاری.</p></div></div>
+
+      <div class="feat"><div class="tag">REPORT</div>
+        <div><h3>ڕاپۆرت</h3>
+        <p>قازانجی خاو و سافی بۆ هەر ماوەیەک، باشترین کاڵا فرۆشراوەکان، و هەناردەی CSV بۆ ئێکسڵ.</p></div></div>
+
+      <div class="feat"><div class="tag">BACKUP</div>
+        <div><h3>باکئەپی خۆکار</h3>
+        <p>فۆڵدەرێکی هاوبەش یان کلاود دیاری بکە — هەر جارێک ئەپەکە دادەخرێت کۆپییەک دەنێردرێت.</p></div></div>
+
+      <div class="feat"><div class="tag">OFFLINE</div>
+        <div><h3>بەبێ ئینتەرنێت</h3>
+        <p>داتاکان لەسەر کۆمپیوتەرەکەی خۆتن. نە ئەکاونت پێویستە، نە بڕی مانگانە، نە چاوەڕوانی.</p></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= دوو سیستەم ================= -->
+<div class="sec" id="modes">
+  <div class="wrap">
+    <span class="eyebrow">Two systems</span>
+    <h2>کام یەکیان پێویستە؟</h2>
+    <p class="lede">هەردووکیان سەربەخۆن. دەتوانیت یەکێکیان یان هەردووکیان بەکاربهێنیت.</p>
+
+    <div class="chain" style="grid-template-columns:1fr 1fr;">
+      <div class="link" style="text-align:right;padding:30px 26px;">
+        <i>GB-SHOP</i>
+        <h3 style="font-size:19px;">سیستەمی دووکانی جوملە</h3>
+        <p style="margin-top:12px;">
+          پسووڵەی فرۆشتن لەگەڵ داشکاندن و هەناردەی PDF ·
+          قەرزی کڕیاران و کەشف حساب ·
+          مەخزەنی کاڵا و کڕین ·
+          مەسروفات و مووچە ·
+          ڕاپۆرتی فرۆشتن و قازانج
+        </p>
+      </div>
+      <div class="link" style="text-align:right;padding:30px 26px;">
+        <i>GB-FACT</i>
+        <h3 style="font-size:19px;">سیستەمی کارگە</h3>
+        <p style="margin-top:12px;">
+          مەخزەنی مادەی خام و بەرهەم ·
+          تۆماری بەچی بەرهەمهێنان ·
+          حیسابی خۆکاری تێچووی یەک یەکە ·
+          تۆماری دەرچوونی بەرهەم ·
+          مووچەی کرێکاران و ڕاپۆرتی تێچوو
+        </p>
+      </div>
+    </div>
+
+    <p class="chain__note">
+      هەریەکەیان <b>داتابەیسی خۆی</b> هەیە و بەبێ ئەوەی تر کاردەکات.
+      لە سیستەمی دووکاندا تێچووی کاڵاکان لە کاتی کڕیندا دەنووسیت.
+    </p>
+  </div>
+</div>
+
+<!-- ================= دامەزراندن ================= -->
+<div class="sec" id="install">
+  <div class="wrap">
+    <span class="eyebrow">Setup</span>
+    <h2>سێ هەنگاو تا دەستپێکردن</h2>
+    <p class="lede">هیچ بەرنامەیەکی تر پێویست نییە — نە Python، نە داتابەیس، نە سێرڤەر.</p>
+
+    <div class="steps">
+      <div class="step"><div class="step__n">01</div>
+        <div><h3>ئەوەی پێویستتە دابگرە</h3>
+        <p><code>OilShopAccounting-Setup.exe</code> بۆ دووکان، <code>FactoryAccounting-Setup.exe</code>
+           بۆ کارگە. دەتوانیت هەردووکیان لەسەر یەک کۆمپیوتەریش دابنێیت — یەکتر تێک نادەن.</p></div></div>
+
+      <div class="step"><div class="step__n">02</div>
+        <div><h3>دایمەزرێنە</h3>
+        <p>دوو جار کلیکی لێبکە و ڕێنماییەکان بگرەبەر. لە کاتی دامەزراندندا
+           تیکی <b>«شۆرتکەت لەسەر دێسکتۆپ درووست بکە»</b> هەڵبژێرە تا ئایکۆنەکە
+           لەسەر دێسکتۆپت دەربکەوێت.</p>
+        <p>ئەگەر ویندۆز پەنجەرەیەکی ئاگاداری پیشاندا، <code>More info</code> پاشان
+           <code>Run anyway</code> هەڵبژێرە — چونکە بەرنامەکە بە دیجیتاڵی ئیمزا نەکراوە.</p></div></div>
+
+      <div class="step"><div class="step__n">03</div>
+        <div><h3>دەست بکە بە کار</h3>
+        <p>یەکەم جار داوای ناوی دووکان یان کارگەکەت دەکات — ئەو ناوە لەسەر
+           پسووڵەکان دەردەکەوێت. پاشان لە «مەخزەن» یەکەم کاڵاکانت زیاد بکە.</p></div></div>
+    </div>
+
+    <div class="reqs">
+      <b style="color:var(--gold);font-weight:500">پێداویستی:</b>
+      ویندۆز ١٠ یان ١١ (64-bit) · ٢٠٠ مێگابایت شوێنی بەتاڵ ·
+      داتای هەر سیستەمێک لە فۆڵدەری خۆی پاشەکەوت دەکرێت
+    </div>
+  </div>
+</div>
+
+<!-- ================= کۆتایی ================= -->
+<div class="end">
+  <div class="wrap">
+    <h2>ئامادەیت دەستی پێبکەیت؟</h2>
+    <p>ئەوەی پێویستتە دابگرە — یان هەردووکیان.</p>
+    <a class="cta" href="OilShopAccounting-Setup.exe" download>سیستەمی دووکان</a>
+    <a class="cta" href="FactoryAccounting-Setup.exe" download
+       style="margin-right:14px;background:transparent;color:var(--gold);
+              box-shadow:none;border:1px solid var(--gold);">سیستەمی کارگە</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">© <span id="y"></span> — هەموو مافەکان پارێزراون</div>
+</footer>
+
+<script>document.getElementById("y").textContent = new Date().getFullYear();</script>
+</body>
+</html>
