@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-درووستکردنی ئایکۆنەکان — shop.ico و factory.ico
+درووستکردنی ئایکۆنی بەرنامەکە — shop.ico
 
 python make_icons.py
 
-هەر ئایکۆنێک چەند قەبارەیەکی تێدایە (16 ... 256) تا لە شریتی ئەرک و
-لەسەر دێسکتۆپ هەردووکیان ڕوون بن.
+ئایکۆنەکە چەند قەبارەیەکی تێدایە (16 ... 256) تا لە شریتی ئەرک و
+لەسەر دێسکتۆپ ڕوون بێت.
 """
 import struct, sys
 from PyQt6.QtCore import Qt, QBuffer, QByteArray, QRectF, QPointF
@@ -58,30 +58,6 @@ def shop(px):
     return img
 
 
-def factory(px):
-    """کارگە بە دووکەڵکێش — بۆ سیستەمی کارگە."""
-    img, p = _canvas(px)
-    _gold(p, px)
-    u = px / 100.0
-
-    body = QPainterPath()
-    body.moveTo(20 * u, 78 * u)      # خواروو چەپ
-    body.lineTo(20 * u, 52 * u)
-    body.lineTo(44 * u, 62 * u)      # یەکەم پلە
-    body.lineTo(44 * u, 46 * u)
-    body.lineTo(68 * u, 56 * u)      # دووەم پلە
-    body.lineTo(68 * u, 26 * u)      # دووکەڵکێش
-    body.lineTo(80 * u, 26 * u)
-    body.lineTo(80 * u, 78 * u)
-    body.closeSubpath()
-    p.drawPath(body)
-
-    # زەوی
-    p.drawRoundedRect(QRectF(18 * u, 79 * u, 64 * u, 5 * u), 2.5 * u, 2.5 * u)
-    p.end()
-    return img
-
-
 def write_ico(path, draw):
     """ICO بە چەند قەبارەیەکەوە (هەر وێنەیەک وەک PNG هەڵدەگیرێت)."""
     blobs = []
@@ -109,10 +85,8 @@ def write_ico(path, draw):
 def main():
     app = QApplication(sys.argv)    # QPainter پێویستی بە ئەپلیکەیشنە (ڕیفەرێنسی بپارێزە)
     write_ico("shop.ico", shop)
-    write_ico("factory.ico", factory)
-    for name, fn in [("preview_shop.png", shop), ("preview_factory.png", factory)]:
-        fn(256).save(name)
-    print("preview_shop.png / preview_factory.png")
+    shop(256).save("preview_shop.png")
+    print("preview_shop.png")
 
 
 if __name__ == "__main__":

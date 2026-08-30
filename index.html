@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>سیستەمی حیسابات — دووکان و کارگە</title>
-<meta name="description" content="دوو بەرنامەی حیساباتی سەربەخۆ: یەکێک بۆ دووکانی جوملەی ڕۆن، یەکێک بۆ کارگەی پاککردنەوە. بەبێ ئینتەرنێت.">
+<title>سیستەمی حیساباتی دووکانی جوملە</title>
+<meta name="description" content="بەرنامەیەکی حیساباتی سەربەخۆ بۆ دووکانی جوملە: فرۆشتن، پسووڵە، قەرزی کڕیاران و مەخزەن. بەبێ ئینتەرنێت.">
 
 <!-- ================================================================
      دوگمەکانی داگرتن ئاماژە بۆ دوایین Release دەکەن، بۆیە دوای هەر
@@ -196,7 +196,6 @@ footer{border-top:1px solid var(--line);padding:34px 0;text-align:center;font-si
     <nav>
       <a href="#chain">چۆن کاردەکات</a>
       <a href="#feats">تایبەتمەندییەکان</a>
-      <a href="#modes">دوو سیستەم</a>
       <a href="#install">دامەزراندن</a>
     </nav>
   </div>
@@ -207,15 +206,15 @@ footer{border-top:1px solid var(--line);padding:34px 0;text-align:center;font-si
   <div class="wrap">
     <div>
       <span class="eyebrow">Windows Desktop · v1.0 · Free</span>
-      <h1>دوو سیستەمی سەربەخۆ — یەکێک بۆ <em>دووکان</em>، یەکێک بۆ <em>کارگە</em></h1>
-      <p>هەریەکەیان بەرنامەیەکی تەواوی جیاوازە بە داتابەیسی خۆیەوە.
-         ئەوەی پێویستتە دایبگرە — یان هەردووکیان، لەسەر دوو کۆمپیوتەری جیاواز.
+      <h1>حیساباتی <em>دووکانی جوملە</em> — سادە و سەربەخۆ</h1>
+      <p>پسووڵە، قەرزی کڕیاران، مەخزەن و قازانج — هەمووی لە یەک بەرنامەدا.
+         لەسەر کۆمپیوتەرەکەی خۆت کاردەکات.
          هیچ ئەکاونت و ئینتەرنێتێک پێویست نییە.</p>
     </div>
 
-    <div class="plates">
+    <div class="plates" style="grid-template-columns:1fr;">
       <div class="plate">
-        <div class="plate__head"><span>WHOLESALE</span><span>GB-SHOP</span></div>
+        <div class="plate__head"><span>WHOLESALE</span><span>v1.0</span></div>
         <div class="plate__rows">
           <div class="prow"><span>بۆ</span><b>Shop &amp; counter</b></div>
           <div class="prow"><span>لەخۆدەگرێت</span><b>Sales · Debts · Stock</b></div>
@@ -223,22 +222,8 @@ footer{border-top:1px solid var(--line);padding:34px 0;text-align:center;font-si
           <div class="prow"><span>داتابەیس</span><b>oil_shop.db</b></div>
         </div>
         <div class="plate__foot">
-          <a class="cta" href="https://github.com/gofzjfhgzfis/accounting/releases/latest/download/OilShopAccounting-Setup.exe" download>سیستەمی دووکان</a>
+          <a class="cta" href="https://github.com/gofzjfhgzfis/accounting/releases/latest/download/OilShopAccounting-Setup.exe" download>داگرتنی بەرنامەکە</a>
           <small>OilShopAccounting-Setup.exe</small>
-        </div>
-      </div>
-
-      <div class="plate">
-        <div class="plate__head"><span>PLANT</span><span>GB-FACT</span></div>
-        <div class="plate__rows">
-          <div class="prow"><span>بۆ</span><b>Blending plant</b></div>
-          <div class="prow"><span>لەخۆدەگرێت</span><b>Batches · Raw · Costs</b></div>
-          <div class="prow"><span>ئەنجام</span><b>Cost per unit</b></div>
-          <div class="prow"><span>داتابەیس</span><b>factory.db</b></div>
-        </div>
-        <div class="plate__foot">
-          <a class="cta" href="https://github.com/gofzjfhgzfis/accounting/releases/latest/download/FactoryAccounting-Setup.exe" download>سیستەمی کارگە</a>
-          <small>FactoryAccounting-Setup.exe</small>
         </div>
       </div>
     </div>
@@ -253,15 +238,15 @@ footer{border-top:1px solid var(--line);padding:34px 0;text-align:center;font-si
     <p class="lede">هەر هەنگاوێک داتاکەی خۆی دەداتە هەنگاوی دواتر — بێ ئەوەی دووبارە شتێک بنووسیتەوە.</p>
 
     <div class="chain">
-      <div class="link"><i>01</i><h3>مادەی خام</h3><p>کڕین تۆمار دەکرێت و تێچووی ناوەند دەگۆڕدرێت</p></div>
-      <div class="link"><i>02</i><h3>بەرهەمهێنان</h3><p>مادە کەم دەکرێتەوە، مووچە و کارەبا زیاد دەکرێن</p></div>
-      <div class="link"><i>03</i><h3>مەخزەن</h3><p>بەرهەم بە تێچووی ڕاستەقینەی خۆی دەچێتە ژوورەوە</p></div>
-      <div class="link"><i>04</i><h3>فرۆشتن</h3><p>پسووڵە دەردەچێت و قەرزی کڕیار نوێ دەبێتەوە</p></div>
+      <div class="link"><i>01</i><h3>کڕین</h3><p>کاڵا دەچێتە مەخزەن و تێچووی هەر یەکەیەک تۆمار دەکرێت</p></div>
+      <div class="link"><i>02</i><h3>مەخزەن</h3><p>بڕی بەردەست بە خۆکاری دەگۆڕدرێت، ئاگاداری کەمبوون دێت</p></div>
+      <div class="link"><i>03</i><h3>فرۆشتن</h3><p>پسووڵە دەردەچێت و بڕ لە مەخزەن کەم دەبێتەوە</p></div>
+      <div class="link"><i>04</i><h3>قەرز</h3><p>ئەوەی نەدراوە خۆکارانە دەچێتە سەر حسابی کڕیار</p></div>
       <div class="link"><i>05</i><h3>قازانج</h3><p>فرۆشتن کەم تێچوو کەم مەسروف = ژمارەی ڕاست</p></div>
     </div>
     <p class="chain__note">
-      لەبەر ئەوەی تێچوو لە هەنگاوی دووەمەوە هەڵدەگیرێت، <b>قازانجەکە خەمڵاندن نییە</b> —
-      حیسابکراوە لەسەر ئەو مادە و مووچەیەی بەڕاستی خەرجکراون.
+      لەبەر ئەوەی تێچوو لە کاتی <b>کڕین</b>ەوە هەڵدەگیرێت، قازانجەکە خەمڵاندن نییە —
+      حیسابکراوە لەسەر ئەو نرخەی بەڕاستی پارەت بۆ دراوە.
     </p>
   </div>
 </div>
@@ -309,45 +294,6 @@ footer{border-top:1px solid var(--line);padding:34px 0;text-align:center;font-si
   </div>
 </div>
 
-<!-- ================= دوو سیستەم ================= -->
-<div class="sec" id="modes">
-  <div class="wrap">
-    <span class="eyebrow">Two systems</span>
-    <h2>کام یەکیان پێویستە؟</h2>
-    <p class="lede">هەردووکیان سەربەخۆن. دەتوانیت یەکێکیان یان هەردووکیان بەکاربهێنیت.</p>
-
-    <div class="chain" style="grid-template-columns:1fr 1fr;">
-      <div class="link" style="text-align:right;padding:30px 26px;">
-        <i>GB-SHOP</i>
-        <h3 style="font-size:19px;">سیستەمی دووکانی جوملە</h3>
-        <p style="margin-top:12px;">
-          پسووڵەی فرۆشتن لەگەڵ داشکاندن و هەناردەی PDF ·
-          قەرزی کڕیاران و کەشف حساب ·
-          مەخزەنی کاڵا و کڕین ·
-          مەسروفات و مووچە ·
-          ڕاپۆرتی فرۆشتن و قازانج
-        </p>
-      </div>
-      <div class="link" style="text-align:right;padding:30px 26px;">
-        <i>GB-FACT</i>
-        <h3 style="font-size:19px;">سیستەمی کارگە</h3>
-        <p style="margin-top:12px;">
-          مەخزەنی مادەی خام و بەرهەم ·
-          تۆماری بەچی بەرهەمهێنان ·
-          حیسابی خۆکاری تێچووی یەک یەکە ·
-          تۆماری دەرچوونی بەرهەم ·
-          مووچەی کرێکاران و ڕاپۆرتی تێچوو
-        </p>
-      </div>
-    </div>
-
-    <p class="chain__note">
-      هەریەکەیان <b>داتابەیسی خۆی</b> هەیە و بەبێ ئەوەی تر کاردەکات.
-      لە سیستەمی دووکاندا تێچووی کاڵاکان لە کاتی کڕیندا دەنووسیت.
-    </p>
-  </div>
-</div>
-
 <!-- ================= دامەزراندن ================= -->
 <div class="sec" id="install">
   <div class="wrap">
@@ -357,9 +303,9 @@ footer{border-top:1px solid var(--line);padding:34px 0;text-align:center;font-si
 
     <div class="steps">
       <div class="step"><div class="step__n">01</div>
-        <div><h3>ئەوەی پێویستتە دابگرە</h3>
-        <p><code>OilShopAccounting-Setup.exe</code> بۆ دووکان، <code>FactoryAccounting-Setup.exe</code>
-           بۆ کارگە. دەتوانیت هەردووکیان لەسەر یەک کۆمپیوتەریش دابنێیت — یەکتر تێک نادەن.</p></div></div>
+        <div><h3>دایبگرە</h3>
+        <p>فایلی <code>OilShopAccounting-Setup.exe</code> دابگرە — نزیکەی ٤٠MB ـە
+           و هەموو ئەوەی پێویستە لەخۆی دەگرێت.</p></div></div>
 
       <div class="step"><div class="step__n">02</div>
         <div><h3>دایمەزرێنە</h3>
@@ -371,7 +317,7 @@ footer{border-top:1px solid var(--line);padding:34px 0;text-align:center;font-si
 
       <div class="step"><div class="step__n">03</div>
         <div><h3>دەست بکە بە کار</h3>
-        <p>یەکەم جار داوای ناوی دووکان یان کارگەکەت دەکات — ئەو ناوە لەسەر
+        <p>یەکەم جار داوای ناوی دووکانەکەت دەکات — ئەو ناوە لەسەر
            پسووڵەکان دەردەکەوێت. پاشان لە «مەخزەن» یەکەم کاڵاکانت زیاد بکە.</p></div></div>
     </div>
 
@@ -387,11 +333,8 @@ footer{border-top:1px solid var(--line);padding:34px 0;text-align:center;font-si
 <div class="end">
   <div class="wrap">
     <h2>ئامادەیت دەستی پێبکەیت؟</h2>
-    <p>ئەوەی پێویستتە دابگرە — یان هەردووکیان.</p>
-    <a class="cta" href="https://github.com/gofzjfhgzfis/accounting/releases/latest/download/OilShopAccounting-Setup.exe" download>سیستەمی دووکان</a>
-    <a class="cta" href="https://github.com/gofzjfhgzfis/accounting/releases/latest/download/FactoryAccounting-Setup.exe" download
-       style="margin-right:14px;background:transparent;color:var(--gold);
-              box-shadow:none;border:1px solid var(--gold);">سیستەمی کارگە</a>
+    <p>دایبگرە و لە چەند خولەکێکدا یەکەم پسووڵەت دەربکە.</p>
+    <a class="cta" href="https://github.com/gofzjfhgzfis/accounting/releases/latest/download/OilShopAccounting-Setup.exe" download>داگرتنی بەرنامەکە</a>
   </div>
 </div>
 
