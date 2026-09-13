@@ -44,36 +44,58 @@ def save_cfg(**kw):
 # ---------------------------------------------------------------- تەختەڕەنگ
 PALETTES = {
     "dark": dict(
-        BG="#1A1D24", PANEL="#232A34", SURFACE="#2A3140", FIELD="#161B23",
-        BORDER="#3B4555", DIVIDER="#2E3847", TEXT="#E8EAF0", TITLE="#F5F7FB",
-        MUTED="#8E98A8", FAINT="#7A8598",
-        GOLD="#DEB145", GOLD_HI="#F5D876", GOLD_PRESS="#C9A03A", ON_GOLD="#13150A",
-        NAV_FG="#A0AABC", NAV_HOVER="#2E3847", NAV_ACTIVE="#35404D",
-        BTN="#39434F", BTN_BORDER="#556273", BTN_HOVER="#454F5D",
-        BTN_HOVER_BORDER="#6B7A8E", BTN_PRESS="#2F3742",
-        INPUT_BORDER="#556273", MENU_BG="#232A34", HEADER_BG="#1F2632",
-        ROW_LINE="#2E3847", SEL_BG="#3D3820", DLG_BG="#1A1D24",
-        SCROLL="#404D5C", SCROLL_HI="#4E5D70",
-        DANGER_FG="#E8949A", DANGER_BORDER="#4A3536",
-        DANGER_BG="#3A2527", DANGER_BORDER_HI="#6B4248",
+        BG="#12151C", PANEL="#1C222C", SURFACE="#272E3B", FIELD="#141922",
+        BORDER="#333D4C", DIVIDER="#262E3A", TEXT="#E9ECF3", TITLE="#F7F9FD",
+        MUTED="#939DAD", FAINT="#7C8698",
+        GOLD="#E2B84F", GOLD_HI="#F7DC84", GOLD_PRESS="#C79E3A", ON_GOLD="#14160B",
+        NAV_FG="#A4AEBF", NAV_HOVER="#242C38", NAV_ACTIVE="#2F3949",
+        BTN="#3A4453", BTN_BORDER="#4E5A6C", BTN_HOVER="#465163",
+        BTN_HOVER_BORDER="#66748A", BTN_PRESS="#2E3744",
+        INPUT_BORDER="#465163", MENU_BG="#1F2632", HEADER_BG="#1D2430",
+        ROW_LINE="#262E3A", SEL_BG="#3A3520", DLG_BG="#161A22",
+        SCROLL="#3C4757", SCROLL_HI="#4C5A6D",
+        DANGER_FG="#EE9CA2", DANGER_BORDER="#4A3437",
+        DANGER_BG="#382326", DANGER_BORDER_HI="#6E434A",
         GREEN="#4FC9A0", BLUE="#5E9FFF", RED="#F07676",
         VIOLET="#A089E8", ORANGE="#F5A366",
+        # ---- گڵۆس: سەرەوە ڕووناکتر، خوارەوە تۆختر ----
+        CARD_T="#2F3848", CARD_B="#222936",
+        BTN_T="#454F60", BTN_B="#333C4A",
+        BTN_HT="#525E71", BTN_HB="#3C4655",
+        GOLD_T="#F2CC6D", GOLD_B="#D4A63E",
+        GOLD_HT="#FBE29A", GOLD_HB="#E0B54D",
+        SIDE_T="#202734", SIDE_B="#171C25",
+        HEAD_T="#28303D", HEAD_B="#1E2530",
+        NAV_ACT_T="#37425380", NAV_ACT_B="#2B3442",
+        SHEEN="rgba(255,255,255,0.07)",
+        SHADE="rgba(0,0,0,0.22)",
     ),
     "light": dict(
-        BG="#FAF9F7", PANEL="#FFFFFF", SURFACE="#FFFFFF", FIELD="#FFFFFF",
-        BORDER="#EDE8E0", DIVIDER="#E6DFD5", TEXT="#3D424D", TITLE="#1F242C",
-        MUTED="#8A9199", FAINT="#9AA3AD",
-        GOLD="#C49B2E", GOLD_HI="#A68318", GOLD_PRESS="#B59125", ON_GOLD="#FFFFFF",
-        NAV_FG="#6F7A88", NAV_HOVER="#F5F2EA", NAV_ACTIVE="#F9F5ED",
-        BTN="#FFFFFF", BTN_BORDER="#C9BFAE", BTN_HOVER="#F5F2EA",
-        BTN_HOVER_BORDER="#A89C88", BTN_PRESS="#F0EDE5",
-        INPUT_BORDER="#C9BFAE", MENU_BG="#FFFFFF", HEADER_BG="#F5F2EA",
-        ROW_LINE="#F0EDE5", SEL_BG="#FEFAF0", DLG_BG="#FDFBF8",
-        SCROLL="#D9D2C7", SCROLL_HI="#C4BCB0",
-        DANGER_FG="#D94C54", DANGER_BORDER="#F0D4CE",
-        DANGER_BG="#FCEAE5", DANGER_BORDER_HI="#E8BAAD",
-        GREEN="#3D9D6F", BLUE="#3D7FD4", RED="#D94C54",
-        VIOLET="#7B5FC4", ORANGE="#D97C3F",
+        BG="#EEF1F6", PANEL="#FFFFFF", SURFACE="#FFFFFF", FIELD="#FFFFFF",
+        BORDER="#DDE3EC", DIVIDER="#E4E9F1", TEXT="#39414E", TITLE="#1A202A",
+        MUTED="#7B8696", FAINT="#95A0B0",
+        GOLD="#C9A038", GOLD_HI="#A8811B", GOLD_PRESS="#B8912B", ON_GOLD="#FFFFFF",
+        NAV_FG="#67727F", NAV_HOVER="#EFF3F8", NAV_ACTIVE="#FBF4E2",
+        BTN="#FFFFFF", BTN_BORDER="#CBD3DE", BTN_HOVER="#F4F7FB",
+        BTN_HOVER_BORDER="#AFBAC8", BTN_PRESS="#E9EEF5",
+        INPUT_BORDER="#CBD3DE", MENU_BG="#FFFFFF", HEADER_BG="#F3F6FA",
+        ROW_LINE="#EDF1F6", SEL_BG="#FDF6E5", DLG_BG="#FBFCFE",
+        SCROLL="#C6CFDB", SCROLL_HI="#AEB9C8",
+        DANGER_FG="#D14650", DANGER_BORDER="#F0D2D4",
+        DANGER_BG="#FDEEEF", DANGER_BORDER_HI="#E3AEB3",
+        GREEN="#2E9E72", BLUE="#2E76D0", RED="#D14650",
+        VIOLET="#7355C0", ORANGE="#D3763A",
+        # ---- گڵۆس: سەرەوە ڕووناکتر، خوارەوە تۆختر ----
+        CARD_T="#FFFFFF", CARD_B="#F6F9FC",
+        BTN_T="#FFFFFF", BTN_B="#EFF3F9",
+        BTN_HT="#FFFFFF", BTN_HB="#E6ECF5",
+        GOLD_T="#E5BC58", GOLD_B="#C29529",
+        GOLD_HT="#EFCC72", GOLD_HB="#CFA333",
+        SIDE_T="#FFFFFF", SIDE_B="#F4F7FB",
+        HEAD_T="#FAFCFE", HEAD_B="#EFF3F9",
+        NAV_ACT_T="#FDF7E8", NAV_ACT_B="#F8EFD8",
+        SHEEN="rgba(255,255,255,0.85)",
+        SHADE="rgba(19,28,45,0.07)",
     ),
 }
 
@@ -350,6 +372,133 @@ class Dashboard(QWidget):
 
 
 # ---------------------------------------------------------------- کڕیاران
+CARD_MIN_W = 250          # کەمترین پانی کارتێک
+
+
+class PickCard(QFrame):
+    """A selectable tile. Subclasses fill `self.body` with their own rows."""
+
+    def __init__(self, rid):
+        super().__init__()
+        self.rid = rid
+        self._pick = self._open = None
+        self.setObjectName("pickCard")
+        self.setProperty("picked", False)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setMinimumWidth(CARD_MIN_W)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding,
+                           QSizePolicy.Policy.Preferred)
+        self.body = QVBoxLayout(self)
+        self.body.setSpacing(5)
+        self.body.setContentsMargins(17, 15, 17, 15)
+
+    # ---- کورتکراوەکانی ناوەڕۆک ----
+    def title(self, text):
+        l = QLabel(text); l.setObjectName("cardTitle"); l.setWordWrap(True)
+        self.body.addWidget(l); return l
+
+    def meta(self, text):
+        l = QLabel(text); l.setObjectName("cardMeta"); l.setWordWrap(True)
+        self.body.addWidget(l); return l
+
+    def value(self, text, tone="cardValue"):
+        l = QLabel(text); l.setObjectName(tone)
+        self.body.addWidget(l); return l
+
+    def set_picked(self, on):
+        self.setProperty("picked", on)
+        self.style().unpolish(self); self.style().polish(self)
+
+    def mousePressEvent(self, e):
+        if self._pick: self._pick(self.rid)
+
+    def mouseDoubleClickEvent(self, e):
+        if self._pick: self._pick(self.rid)
+        if self._open: self._open()
+
+
+class CardGrid(QWidget):
+    """Scrollable grid of PickCards that reflows with the window width."""
+
+    def __init__(self, empty_text="هیچ تۆمارێک نییە", min_w=CARD_MIN_W, on_open=None):
+        super().__init__()
+        self.cards = []
+        self.selected = None
+        self.min_w = min_w
+        self.on_open = on_open
+        self._cols = 0
+
+        v = QVBoxLayout(self); v.setContentsMargins(0, 0, 0, 0); v.setSpacing(0)
+        self.area = QScrollArea(); self.area.setObjectName("cardArea")
+        self.area.setWidgetResizable(True)
+        self.area.setFrameShape(QFrame.Shape.NoFrame)
+        self.area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        holder = QWidget(); holder.setObjectName("cardHolder")
+        self.grid = QGridLayout(holder)
+        self.grid.setSpacing(14); self.grid.setContentsMargins(0, 0, 0, 0)
+        self.grid.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.area.setWidget(holder)
+        v.addWidget(self.area)
+
+        self.empty = QLabel(empty_text); self.empty.setObjectName("hint")
+        self.empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        v.addWidget(self.empty); self.empty.hide()
+
+    def set_cards(self, cards):
+        for c in self.cards:
+            c.setParent(None); c.deleteLater()
+        self.cards = cards
+        self._cols = 0
+        for c in cards:
+            c._pick, c._open = self.pick, self.on_open
+        self.empty.setVisible(not cards)
+        self.area.setVisible(bool(cards))
+        if self.selected not in [c.rid for c in cards]:
+            self.selected = None
+        self._fit(); self._mark()
+
+    def pick(self, rid):
+        self.selected = rid
+        self._mark()
+
+    def _mark(self):
+        for c in self.cards:
+            c.set_picked(c.rid == self.selected)
+
+    def _fit(self):
+        w = self.area.viewport().width()
+        cols = max(1, (w + self.grid.spacing()) // (self.min_w + self.grid.spacing()))
+        if cols == self._cols:
+            return
+        self._cols = cols
+        for c in self.cards:
+            self.grid.removeWidget(c)
+        for i, c in enumerate(self.cards):
+            self.grid.addWidget(c, i // cols, i % cols)
+        for c in range(self.grid.columnCount()):
+            self.grid.setColumnStretch(c, 1 if c < cols else 0)
+        # ڕیزەکان بە بەرزی ناوەڕۆکیان بمێننەوە — شوێنی زیادە بۆ خوارەوە
+        used = -(-len(self.cards) // cols) if self.cards else 0
+        for r in range(self.grid.rowCount()):
+            self.grid.setRowStretch(r, 0)
+        self.grid.setRowStretch(used, 1)
+
+    def resizeEvent(self, e):
+        super().resizeEvent(e)
+        self._fit()
+
+
+class CustomerCard(PickCard):
+    def __init__(self, row, debt, currency):
+        super().__init__(row["id"])
+        self.title(row["name"])
+        self.meta(lrm(row["phone"]) if row["phone"] else "—")
+        self.meta(row["address"] or "—")
+        self.body.addStretch()
+        self.debt = self.value(f"قەرز:  {fmt(debt)} {currency}",
+                               "cardBad" if debt > 0 else "cardGood")
+
+
 class Customers(QWidget):
     def __init__(self, app):
         super().__init__(); self.app = app
@@ -365,15 +514,20 @@ class Customers(QWidget):
         top.addWidget(btn("سڕینەوە", self.rm, "danger"))
         top.addStretch(); top.addWidget(self.search)
         v.addLayout(top)
-        self.tbl = table(["#", "ناو", "مۆبایل", "ناونیشان", "قەرز"])
-        v.addWidget(self.tbl)
+
+        self.grid = CardGrid("هێشتا هیچ کڕیارێک تۆمار نەکراوە", on_open=self.edit)
+        v.addWidget(self.grid)
+
+    @property
+    def selected(self):
+        return self.grid.selected
 
     def refresh(self):
         s = f"%{self.search.text()}%"
         rows = db.q("SELECT * FROM customers WHERE name LIKE ? OR IFNULL(phone,'') LIKE ? ORDER BY name",
                     (s, s))
-        fill(self.tbl, [(r["id"], r["name"], r["phone"] or "—", r["address"] or "—",
-                         fmt(db.balance(r["id"]))) for r in rows])
+        cur = db.get("currency")
+        self.grid.set_cards([CustomerCard(r, db.balance(r["id"]), cur) for r in rows])
 
     def form(self, r=None):
         d = dialog(self, "کڕیار"); f = QFormLayout(d); f.setSpacing(12)
@@ -395,7 +549,7 @@ class Customers(QWidget):
             self.app.refresh_all()
 
     def edit(self):
-        cid = picked_id(self.tbl)
+        cid = self.selected
         if not cid: return msg(self, "سەرەتا کڕیارێک هەڵبژێرە")
         v = self.form(db.one("SELECT * FROM customers WHERE id=?", (cid,)))
         if v:
@@ -403,7 +557,7 @@ class Customers(QWidget):
             self.app.refresh_all()
 
     def rm(self):
-        cid = picked_id(self.tbl)
+        cid = self.selected
         if not cid: return msg(self, "سەرەتا کڕیارێک هەڵبژێرە")
         if db.one("SELECT COUNT(*) c FROM invoices WHERE customer_id=?", (cid,))["c"]:
             return msg(self, "ناتوانرێت بسڕدرێتەوە — پسووڵەی تۆمارکراوی هەیە")
@@ -411,7 +565,7 @@ class Customers(QWidget):
             db.x("DELETE FROM customers WHERE id=?", (cid,)); self.app.refresh_all()
 
     def pay(self):
-        cid = picked_id(self.tbl)
+        cid = self.selected
         if not cid: return msg(self, "سەرەتا کڕیارێک هەڵبژێرە")
         d = dialog(self, "وەرگرتنی پارە"); f = QFormLayout(d); f.setSpacing(12)
         dt, am, nt = date_edit(), num(), QLineEdit()
@@ -426,7 +580,7 @@ class Customers(QWidget):
             self.app.refresh_all()
 
     def statement(self):
-        cid = picked_id(self.tbl)
+        cid = self.selected
         if not cid: return msg(self, "سەرەتا کڕیارێک هەڵبژێرە")
         c = db.one("SELECT * FROM customers WHERE id=?", (cid,))
         rows = []
@@ -446,6 +600,20 @@ class Customers(QWidget):
 
 
 # ---------------------------------------------------------------- مەخزەن
+class ItemCard(PickCard):
+    def __init__(self, row, currency):
+        super().__init__(row["id"])
+        low = row["minq"] and row["qty"] <= row["minq"]
+        self.title(row["name"])
+        self.meta(f"یەکە:  {row['unit'] or '—'}")
+        self.meta(f"تێچوو:  {fmt(row['cost'])}   ·   فرۆشتن:  {fmt(row['price'])} {currency}")
+        self.body.addStretch()
+        txt = f"بڕ:  {fmt(row['qty'])}"
+        if low:
+            txt += "   ⚠ کەمە"
+        self.qty = self.value(txt, "cardBad" if low else "cardGood")
+
+
 class Inventory(QWidget):
     def __init__(self, app):
         super().__init__(); self.app = app
@@ -460,18 +628,18 @@ class Inventory(QWidget):
         self.search.setMinimumWidth(220)
         self.search.textChanged.connect(self.refresh)
         top.addWidget(self.search); v.addLayout(top)
-        self.tbl = table(["#", "ناو", "یەکە", "بڕ", "تێچوو/یەکە", "نرخی فرۆشتن", "کەمترین بڕ"])
-        v.addWidget(self.tbl)
+        self.grid = CardGrid("هێشتا هیچ کاڵایەک تۆمار نەکراوە", on_open=self.edit)
+        v.addWidget(self.grid)
+
+    @property
+    def selected(self):
+        return self.grid.selected
 
     def refresh(self):
         q = f"%{self.search.text()}%"
         rows = db.q("SELECT * FROM items WHERE name LIKE ? ORDER BY name", (q,))
-        fill(self.tbl, [(r["id"], r["name"], r["unit"] or "—", fmt(r["qty"]),
-                         fmt(r["cost"]), fmt(r["price"]), fmt(r["minq"])) for r in rows])
-        for i, r in enumerate(rows):
-            if r["minq"] and r["qty"] <= r["minq"]:
-                for j in range(self.tbl.columnCount()):
-                    self.tbl.item(i, j).setForeground(QColor(RED))
+        cur = db.get("currency")
+        self.grid.set_cards([ItemCard(r, cur) for r in rows])
 
     def form(self, r=None):
         d = dialog(self, "کاڵا"); f = QFormLayout(d); f.setSpacing(12)
@@ -497,7 +665,7 @@ class Inventory(QWidget):
             self.app.refresh_all()
 
     def edit(self):
-        i = picked_id(self.tbl)
+        i = self.grid.selected
         if not i: return msg(self, "سەرەتا کاڵایەک هەڵبژێرە")
         v = self.form(db.one("SELECT * FROM items WHERE id=?", (i,)))
         if v:
@@ -505,13 +673,13 @@ class Inventory(QWidget):
             self.app.refresh_all()
 
     def rm(self):
-        i = picked_id(self.tbl)
+        i = self.grid.selected
         if not i: return msg(self, "سەرەتا کاڵایەک هەڵبژێرە")
         if ask(self, "دڵنیایت لە سڕینەوە؟"):
             db.x("DELETE FROM items WHERE id=?", (i,)); self.app.refresh_all()
 
     def purchase(self):
-        i = picked_id(self.tbl)
+        i = self.grid.selected
         if not i: return msg(self, "سەرەتا کاڵایەک هەڵبژێرە")
         it = db.one("SELECT * FROM items WHERE id=?", (i,))
         d = dialog(self, f"کڕین — {it['name']}"); f = QFormLayout(d); f.setSpacing(12)
@@ -531,6 +699,20 @@ class Inventory(QWidget):
 
 
 # ---------------------------------------------------------------- فرۆشتن
+class InvoiceCard(PickCard):
+    def __init__(self, row, currency):
+        super().__init__(row["id"])
+        due = row["total"] - row["paid"]
+        self.title(f"پسووڵە #{lrm(row['id'])}")
+        self.meta(lrm(row["date"]))
+        self.meta(row["cn"])
+        self.body.addStretch()
+        self.value(f"کۆ:  {fmt(row['total'])} {currency}", "cardValue")
+        self.due = self.value(
+            f"ماوە:  {fmt(due)} {currency}" if due > 0 else "پارەکەی دراوە",
+            "cardBad" if due > 0 else "cardGood")
+
+
 class Sales(QWidget):
     def __init__(self, app):
         super().__init__(); self.app = app
@@ -573,11 +755,9 @@ class Sales(QWidget):
         main.addWidget(box, 5)
 
         box2 = QGroupBox("پسووڵە تۆمارکراوەکان"); v2 = QVBoxLayout(box2); v2.setSpacing(12)
-        self.tbl = table(["#", "بەروار", "کڕیار", "کۆ", "ماوە"]); fit(self.tbl, 2)
-        self.tbl.setColumnWidth(2, 120)
-        self.tbl.setWordWrap(False)
-        self.tbl.setTextElideMode(Qt.TextElideMode.ElideRight)
-        v2.addWidget(self.tbl)
+        self.grid = CardGrid("هێشتا هیچ پسووڵەیەک تۆمار نەکراوە",
+                             min_w=210, on_open=self.pdf)
+        v2.addWidget(self.grid)
         h = QHBoxLayout(); h.setSpacing(9)
         h.addWidget(btn("هەناردەکردن بۆ PDF", self.pdf, "primary"))
         h.addWidget(btn("سڕینەوەی پسووڵە", self.rm_inv, "danger"))
@@ -597,8 +777,8 @@ class Sales(QWidget):
             self.item.addItem(f"{i['name']}   ·   بڕ {fmt(i['qty'])}", i["id"])
         rows = db.q("SELECT i.*, IFNULL(c.name,'—') cn FROM invoices i "
                     "LEFT JOIN customers c ON c.id=i.customer_id ORDER BY i.id DESC LIMIT 300")
-        fill(self.tbl, [(r["id"], r["date"], r["cn"], fmt(r["total"]),
-                         fmt(r["total"] - r["paid"])) for r in rows])
+        cur = db.get("currency")
+        self.grid.set_cards([InvoiceCard(r, cur) for r in rows])
 
     def autoprice(self):
         i = self.item.currentData()
@@ -651,7 +831,7 @@ class Sales(QWidget):
         msg(self, f"پسووڵە #{iid} بە سەرکەوتوویی تۆمارکرا")
 
     def rm_inv(self):
-        iid = picked_id(self.tbl)
+        iid = self.grid.selected
         if not iid: return msg(self, "سەرەتا پسووڵەیەک هەڵبژێرە")
         if not ask(self, "پسووڵەکە بسڕدرێتەوە؟ بڕەکان دەگەڕێنەوە مەخزەن."): return
         for r in db.q("SELECT * FROM invoice_items WHERE invoice_id=?", (iid,)):
@@ -661,7 +841,7 @@ class Sales(QWidget):
         self.app.refresh_all()
 
     def pdf(self):
-        iid = picked_id(self.tbl)
+        iid = self.grid.selected
         if not iid: return msg(self, "سەرەتا پسووڵەیەک هەڵبژێرە")
         inv = db.one("SELECT * FROM invoices WHERE id=?", (iid,))
         cus = db.one("SELECT * FROM customers WHERE id=?", (inv["customer_id"],))
@@ -770,6 +950,26 @@ class Sales(QWidget):
 
 
 # ---------------------------------------------------------------- مەسروفات و مووچە
+class ExpenseCard(PickCard):
+    def __init__(self, row, currency):
+        super().__init__(row["id"])
+        self.title(row["category"] or "—")
+        self.meta(lrm(row["date"]))
+        self.meta(row["note"] or "—")
+        self.body.addStretch()
+        self.value(f"{fmt(row['amount'])} {currency}", "cardGold")
+
+
+class EmployeeCard(PickCard):
+    def __init__(self, row, currency):
+        super().__init__(row["id"])
+        self.title(row["name"])
+        self.meta(row["position"] or "—")
+        self.meta(lrm(row["phone"]) if row["phone"] else "—")
+        self.body.addStretch()
+        self.value(f"مووچە:  {fmt(row['salary'])} {currency}", "cardGold")
+
+
 class Expenses(QWidget):
     CATS = ["کارەبا", "سووتەمەنی", "کرێ", "گواستنەوە", "چاککردنەوە", "بازرگانی", "هیتر"]
 
@@ -783,7 +983,8 @@ class Expenses(QWidget):
         h.addWidget(btn("مەسروفی نوێ", self.add_exp, "primary"))
         h.addWidget(btn("سڕینەوە", self.rm_exp, "danger"))
         h.addStretch(); v1.addLayout(h)
-        self.et = table(["#", "بەروار", "جۆر", "بڕ", "تێبینی"]); v1.addWidget(self.et)
+        self.eg = CardGrid("هێشتا هیچ مەسروفێک تۆمار نەکراوە", min_w=225)
+        v1.addWidget(self.eg)
         tabs.addTab(w1, "مەسروفات")
 
         w2 = QWidget(); v2 = QVBoxLayout(w2); v2.setSpacing(14); v2.setContentsMargins(0, 16, 0, 0)
@@ -792,16 +993,18 @@ class Expenses(QWidget):
         h2.addWidget(btn("دانی مووچە", self.pay_sal))
         h2.addWidget(btn("سڕینەوە", self.rm_emp, "danger"))
         h2.addStretch(); v2.addLayout(h2)
-        self.mt = table(["#", "ناو", "پۆست", "مووچە", "مۆبایل"]); v2.addWidget(self.mt)
+        self.mg = CardGrid("هێشتا هیچ کارمەندێک تۆمار نەکراوە")
+        v2.addWidget(self.mg, 3)
         v2.addWidget(heading("مووچە دراوەکان"))
-        self.st = table(["بەروار", "کارمەند", "بڕ", "تێبینی"]); v2.addWidget(self.st)
+        self.st = table(["بەروار", "کارمەند", "بڕ", "تێبینی"]); v2.addWidget(self.st, 2)
         tabs.addTab(w2, "کارمەندان و مووچە")
 
     def refresh(self):
-        fill(self.et, [(r["id"], r["date"], r["category"], fmt(r["amount"]), r["note"] or "—")
-                       for r in db.q("SELECT * FROM expenses ORDER BY id DESC LIMIT 300")])
-        fill(self.mt, [(r["id"], r["name"], r["position"] or "—", fmt(r["salary"]), r["phone"] or "—")
-                       for r in db.q("SELECT * FROM employees ORDER BY name")])
+        cur = db.get("currency")
+        self.eg.set_cards([ExpenseCard(r, cur) for r in
+                           db.q("SELECT * FROM expenses ORDER BY id DESC LIMIT 300")])
+        self.mg.set_cards([EmployeeCard(r, cur) for r in
+                           db.q("SELECT * FROM employees ORDER BY name")])
         fill(self.st, [(r["date"], r["n"], fmt(r["amount"]), r["note"] or "—")
                        for r in db.q("SELECT s.*, e.name n FROM salaries s "
                                      "JOIN employees e ON e.id=s.employee_id ORDER BY s.id DESC LIMIT 200")])
@@ -818,7 +1021,7 @@ class Expenses(QWidget):
             self.app.refresh_all()
 
     def rm_exp(self):
-        i = picked_id(self.et)
+        i = self.eg.selected
         if not i: return msg(self, "سەرەتا ڕیزێک هەڵبژێرە")
         if ask(self, "بسڕدرێتەوە؟"):
             db.x("DELETE FROM expenses WHERE id=?", (i,)); self.app.refresh_all()
@@ -835,13 +1038,13 @@ class Expenses(QWidget):
             self.app.refresh_all()
 
     def rm_emp(self):
-        i = picked_id(self.mt)
+        i = self.mg.selected
         if not i: return msg(self, "سەرەتا کارمەندێک هەڵبژێرە")
         if ask(self, "بسڕدرێتەوە؟"):
             db.x("DELETE FROM employees WHERE id=?", (i,)); self.app.refresh_all()
 
     def pay_sal(self):
-        i = picked_id(self.mt)
+        i = self.mg.selected
         if not i: return msg(self, "سەرەتا کارمەندێک هەڵبژێرە")
         e = db.one("SELECT * FROM employees WHERE id=?", (i,))
         d = dialog(self, f"مووچە — {e['name']}"); f = QFormLayout(d); f.setSpacing(12)
@@ -1186,6 +1389,12 @@ class Main(QMainWindow):
         e.accept()
 
 
+def _grad(top, bottom):
+    """Vertical gloss: light at the top, darker at the bottom."""
+    return (f"qlineargradient(x1:0, y1:0, x2:0, y2:1, "
+            f"stop:0 {top}, stop:1 {bottom})")
+
+
 def build_qss():
     """Stylesheet for the palette that is currently active."""
     return f"""
@@ -1194,23 +1403,32 @@ QLabel {{ background:transparent; }}
 #root {{ background:{BG}; }}
 
 /* ---------- لای ناڤیگەیشن ---------- */
-#sidebar {{ background:{PANEL}; border-left:1px solid {DIVIDER}; }}
+#sidebar {{
+    background:{_grad(SIDE_T, SIDE_B)};
+    border-left:1px solid {DIVIDER};
+}}
 #brand {{ color:{GOLD}; font-size:16px; font-weight:700; letter-spacing:3px; }}
 #brandSub {{ color:{MUTED}; font-size:13px; }}
 #navBtn {{
-    background:transparent; border:none; border-radius:14px;
-    padding:14px 18px; text-align:right; color:{NAV_FG}; font-size:15px;
+    background:transparent; border:1px solid transparent; border-radius:13px;
+    padding:13px 18px; text-align:right; color:{NAV_FG}; font-size:15px;
 }}
 #navBtn:hover {{ background:{NAV_HOVER}; color:{TEXT}; }}
-#navBtn:checked {{ background:{NAV_ACTIVE}; color:{GOLD_HI}; font-weight:700; }}
-#themeBtn {{
-    background:transparent; border:1px solid {BTN_BORDER}; border-radius:14px;
-    padding:12px 18px; color:{MUTED}; font-size:14px; text-align:center;
+#navBtn:checked {{
+    background:{_grad(NAV_ACT_T, NAV_ACT_B)};
+    border-top:1px solid {SHEEN};
+    color:{GOLD_HI}; font-weight:700;
 }}
-#themeBtn:hover {{ background:{NAV_HOVER}; color:{TEXT}; }}
+#themeBtn {{
+    background:{_grad(BTN_T, BTN_B)};
+    border:1px solid {BTN_BORDER}; border-top:1px solid {SHEEN};
+    border-radius:13px; padding:11px 18px; color:{MUTED};
+    font-size:14px; text-align:center;
+}}
+#themeBtn:hover {{ background:{_grad(BTN_HT, BTN_HB)}; color:{TEXT}; }}
 
 /* ---------- سەرەوە ---------- */
-#header {{ background:{BG}; border-bottom:1px solid {DIVIDER}; }}
+#header {{ background:transparent; border-bottom:1px solid {DIVIDER}; }}
 #pageTitle {{ font-size:25px; font-weight:700; color:{TITLE}; }}
 #pageSub {{ color:{MUTED}; font-size:14px; }}
 #hint {{ color:{FAINT}; font-size:13px; }}
@@ -1218,26 +1436,71 @@ QLabel {{ background:transparent; }}
 #summary {{ color:{MUTED}; font-size:15px; padding:9px 0; }}
 
 /* ---------- کارتەکان ---------- */
-#statCard {{ background:{SURFACE}; border:1px solid {BORDER}; border-radius:20px; }}
+#statCard {{
+    background:{_grad(CARD_T, CARD_B)};
+    border:1px solid {BORDER}; border-top:1px solid {SHEEN};
+    border-radius:18px;
+}}
 #statCap {{ color:{MUTED}; font-size:13px; }}
 #statVal {{ color:{TITLE}; font-size:27px; font-weight:700; }}
 
+/* ---------- کارتەکان ---------- */
+#cardArea, #cardHolder, #cardArea > QWidget > QWidget {{ background:transparent; }}
+#pickCard {{
+    background:{_grad(CARD_T, CARD_B)};
+    border:1px solid {BORDER}; border-top:1px solid {SHEEN};
+    border-radius:16px;
+}}
+#pickCard:hover {{ border:1px solid {BTN_HOVER_BORDER}; border-top:1px solid {SHEEN}; }}
+#pickCard[picked="true"] {{
+    border:2px solid {GOLD}; background:{_grad(NAV_ACT_T, CARD_B)};
+}}
+#cardTitle {{ color:{TITLE}; font-size:17px; font-weight:700; }}
+#cardMeta {{ color:{MUTED}; font-size:13px; }}
+#cardValue {{ color:{TEXT}; font-size:15px; font-weight:700; }}
+#cardBad {{ color:{DANGER_FG}; font-size:15px; font-weight:700; }}
+#cardGood {{ color:{GREEN}; font-size:15px; font-weight:700; }}
+#cardGold {{ color:{GOLD_HI}; font-size:15px; font-weight:700; }}
+
 /* ---------- دوگمەکان ---------- */
 QPushButton {{
-    background:{BTN}; color:{TEXT}; border:1px solid {BTN_BORDER};
-    border-radius:12px; padding:9px 20px; min-height:20px; font-weight:600;
+    background:{_grad(BTN_T, BTN_B)};
+    color:{TEXT}; border:1px solid {BTN_BORDER}; border-top:1px solid {SHEEN};
+    border-radius:11px; padding:9px 20px; min-height:20px; font-weight:600;
 }}
-QPushButton:hover {{ background:{BTN_HOVER}; border-color:{BTN_HOVER_BORDER}; }}
-QPushButton:pressed {{ background:{BTN_PRESS}; }}
-QPushButton#primary {{ background:{GOLD}; color:{ON_GOLD}; border:none; font-weight:700; }}
-QPushButton#primary:hover {{ background:{GOLD_HI}; color:{ON_GOLD}; }}
-QPushButton#primary:pressed {{ background:{GOLD_PRESS}; }}
+QPushButton:hover {{
+    background:{_grad(BTN_HT, BTN_HB)}; border-color:{BTN_HOVER_BORDER};
+    border-top:1px solid {SHEEN};
+}}
+QPushButton:pressed {{
+    background:{_grad(BTN_PRESS, BTN_PRESS)};
+    border-top:1px solid {BTN_BORDER};
+}}
+QPushButton:disabled {{
+    background:{_grad(BTN_B, BTN_B)}; color:{FAINT};
+    border-color:{DIVIDER}; border-top:1px solid {DIVIDER};
+}}
+QPushButton#primary {{
+    background:{_grad(GOLD_T, GOLD_B)};
+    color:{ON_GOLD}; border:1px solid {GOLD_PRESS};
+    border-top:1px solid {SHEEN}; font-weight:700;
+}}
+QPushButton#primary:hover {{ background:{_grad(GOLD_HT, GOLD_HB)}; color:{ON_GOLD}; }}
+QPushButton#primary:pressed {{
+    background:{_grad(GOLD_PRESS, GOLD_PRESS)}; border-top:1px solid {GOLD_PRESS};
+}}
+QPushButton#primary:disabled {{
+    background:{_grad(BTN_B, BTN_B)}; color:{FAINT};
+    border-color:{DIVIDER}; border-top:1px solid {DIVIDER};
+}}
 QPushButton#danger {{ color:{DANGER_FG}; border-color:{DANGER_BORDER}; }}
-QPushButton#danger:hover {{ background:{DANGER_BG}; border-color:{DANGER_BORDER_HI}; }}
+QPushButton#danger:hover {{
+    background:{_grad(DANGER_BG, DANGER_BG)}; border-color:{DANGER_BORDER_HI};
+}}
 
 /* ---------- خانەکان ---------- */
 QLineEdit, QComboBox, QDoubleSpinBox, QDateEdit {{
-    background:{FIELD}; border:1px solid {INPUT_BORDER}; border-radius:12px;
+    background:{FIELD}; border:1px solid {INPUT_BORDER}; border-radius:11px;
     padding:9px 14px; color:{TEXT}; min-height:20px;
     selection-background-color:{GOLD}; selection-color:{ON_GOLD};
 }}
@@ -1257,7 +1520,7 @@ QComboBox QAbstractItemView::item {{
 }}
 QComboBox QAbstractItemView::item:hover {{ background:{NAV_HOVER}; }}
 QComboBox QAbstractItemView::item:selected {{
-    background:{GOLD}; color:{ON_GOLD}; font-weight:600;
+    background:{_grad(GOLD_T, GOLD_B)}; color:{ON_GOLD}; font-weight:600;
 }}
 QCalendarWidget QWidget {{ background:{MENU_BG}; }}
 QCalendarWidget QAbstractItemView {{
@@ -1267,24 +1530,27 @@ QCalendarWidget QAbstractItemView {{
 
 /* ---------- خشتەکان ---------- */
 QTableWidget {{
-    background:{FIELD}; border:1px solid {BORDER}; border-radius:18px;
+    background:{FIELD}; border:1px solid {BORDER}; border-radius:16px;
     gridline-color:transparent; outline:none;
 }}
 QTableWidget::item {{ border-bottom:1px solid {ROW_LINE}; padding:9px 8px; }}
 QTableWidget::item:selected {{ background:{SEL_BG}; color:{GOLD_HI}; }}
 QHeaderView::section {{
-    background:{HEADER_BG}; color:{MUTED}; padding:15px 8px; border:none;
-    border-bottom:1px solid {INPUT_BORDER}; font-weight:600; font-size:13px;
+    background:{_grad(HEAD_T, HEAD_B)};
+    color:{MUTED}; padding:15px 8px; border:none;
+    border-bottom:1px solid {BORDER}; font-weight:600; font-size:13px;
 }}
 
 /* ---------- گرووپ و تاب ---------- */
 QGroupBox {{
-    background:{SURFACE}; border:1px solid {BORDER}; border-radius:18px;
+    background:{_grad(CARD_T, CARD_B)};
+    border:1px solid {BORDER}; border-top:1px solid {SHEEN};
+    border-radius:18px;
     margin-top:16px; padding:22px 16px 16px 16px; font-weight:600;
 }}
 QGroupBox::title {{
     subcontrol-origin:margin; subcontrol-position:top right;
-    right:20px; padding:0 10px; color:{GOLD};
+    right:20px; padding:0 10px; color:{GOLD}; background:transparent;
 }}
 QTabWidget::pane {{ border:none; }}
 QTabBar::tab {{
@@ -1296,7 +1562,7 @@ QTabBar::tab:selected {{ color:{GOLD_HI}; border-bottom:2px solid {GOLD}; font-w
 
 /* ---------- ڕاپۆرت و دیالۆگ ---------- */
 QTextBrowser {{
-    background:{FIELD}; border:1px solid {BORDER}; border-radius:18px; padding:24px;
+    background:{FIELD}; border:1px solid {BORDER}; border-radius:16px; padding:24px;
 }}
 #dlg {{ background:{DLG_BG}; }}
 QDialog {{ background:{DLG_BG}; }}
