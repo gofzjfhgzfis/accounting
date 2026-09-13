@@ -3,7 +3,7 @@
 
 #define AppName    "Oil Shop Accounting"
 #define AppNameKu  "سیستەمی دووکانی جوملە"
-#define AppVersion "1.0"
+#define AppVersion "1.1"
 #define AppExe     "OilShopAccounting.exe"
 
 [Setup]
