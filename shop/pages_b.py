@@ -2,10 +2,13 @@
 """مەخزەن، دابینکەران، مەسروفات و مووچە، ڕاپۆرت، ڕێکخستن."""
 import os, csv, shutil, datetime
 
-from PyQt6.QtCore import Qt, QDate
+from PyQt6.QtCore import Qt, QDate, QRectF, QUrl
+from PyQt6.QtGui import QPainter, QPixmap, QColor, QPen, QDesktopServices
+from PyQt6.QtPrintSupport import QPrinter, QPrintDialog
 from PyQt6.QtWidgets import *
 
 from . import core
+from . import barcode as bc
 from .core import db, fmt, money, usd, today, lrm, esc, pin_hash, save_cfg, APP_DIR
 from .theme import T
 from .ui import *
@@ -26,6 +29,73 @@ class ItemCard(PickCard):
                  "txtBad" if (out or low) else "txtGood")
         self.row("تێچوو", fmt(row["cost"]), "txtMuted")
         self.row("نرخی فرۆشتن", money(row["price"]), "txtGold")
+        if row["barcode"]:
+            self.row("بارکۆد", lrm(row["barcode"]), "txtMuted")
+
+
+def labels_dialog(parent, name, code, price):
+    """Choose the sheet and the number of stickers, then save a PDF or print."""
+    d = dialog(parent, f"چاپی بارکۆد — {name}", 520)
+    v = QVBoxLayout(d); v.setSpacing(14); v.setContentsMargins(22, 20, 22, 18)
+    prev = QLabel(); prev.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    prev.setMinimumHeight(230)
+    prev.setStyleSheet(f"background:{T.FIELD};border:1px solid {T.BORDER};border-radius:12px;")
+    v.addWidget(prev)
+    f = QFormLayout(); f.setSpacing(11)
+    lay = combo(); lay.addItems([l[0] for l in bc.LAYOUTS])
+    count = QSpinBox(); count.setRange(1, 2000); count.setValue(24)
+    count.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+    show_price = QCheckBox("نرخی فرۆشتن لەسەر لەیبڵەکە بنووسە"); show_price.setChecked(True)
+    f.addRow("جۆری لەیبڵ", lay); f.addRow("ژمارەی لەیبڵ", count); f.addRow("", show_price)
+    v.addLayout(f)
+    v.addWidget(label(f"بارکۆد:  {lrm(code)}", "hint"))
+
+    def redraw():
+        _, lw, lh, *_ = bc.LAYOUTS[lay.currentIndex()]
+        k = min(320 / lw, 190 / lh)                 # px per mm, fitted to the preview box
+        pm = QPixmap(int(lw * k * 2), int(lh * k * 2)); pm.setDevicePixelRatio(2)
+        pm.fill(QColor("#FFFFFF"))
+        p = QPainter(pm); p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        bc.draw_label(p, QRectF(0, 0, lw * k, lh * k), name, code,
+                      price if show_price.isChecked() else "")
+        p.setPen(QPen(QColor("#C9CED6"), 1)); p.setBrush(Qt.BrushStyle.NoBrush)
+        p.drawRect(QRectF(0.5, 0.5, lw * k - 1, lh * k - 1))
+        p.end()
+        prev.setPixmap(pm)
+
+    def layout_changed():
+        _, _, _, cols, rows = bc.LAYOUTS[lay.currentIndex()]
+        count.setValue(cols * rows if cols * rows > 1 else 1)
+        redraw()
+
+    lay.currentIndexChanged.connect(lambda _: layout_changed())
+    show_price.toggled.connect(lambda _: redraw())
+
+    def run(to_pdf):
+        i = lay.currentIndex()
+        pr = QPrinter(QPrinter.PrinterMode.HighResolution)
+        bc.setup_printer(pr, i)
+        if to_pdf:
+            path, _ = QFileDialog.getSaveFileName(
+                d, "پاشەکەوتکردنی PDF", os.path.join(APP_DIR, f"barcode_{code}.pdf"), "PDF (*.pdf)")
+            if not path: return
+            pr.setOutputFormat(QPrinter.OutputFormat.PdfFormat); pr.setOutputFileName(path)
+        elif not QPrintDialog(pr, d).exec():
+            return
+        p = QPainter(pr)
+        bc.paint_labels(p, pr, i, count.value(), name, code,
+                        price if show_price.isChecked() else "")
+        p.end()
+        if to_pdf: QDesktopServices.openUrl(QUrl.fromLocalFile(path))
+        d.accept()
+
+    h = QHBoxLayout(); h.setSpacing(8)
+    h.addWidget(btn("PDF", lambda: run(True), ico="pdf"))
+    h.addWidget(btn("چاپکردن", lambda: run(False), "primary", "print"))
+    h.addStretch(); h.addWidget(btn("داخستن", d.reject))
+    v.addLayout(h)
+    redraw()
+    d.exec()
 
 
 class Inventory(QWidget):
@@ -36,25 +106,31 @@ class Inventory(QWidget):
         top.addWidget(btn("کاڵای نوێ", self.add, "primary", "plus"))
         top.addWidget(btn("دەستکاری", self.edit))
         top.addWidget(btn("کڕین / زیادکردنی بڕ", self.purchase, ico="sup"))
+        top.addWidget(btn("چاپی بارکۆد", self.labels, ico="barcode"))
         top.addWidget(btn("سڕینەوە", self.rm, "danger"))
         top.addStretch()
         ch, self.flt = chips(["هەموو", "کەمبوو"], self.refresh)
         top.addLayout(ch)
-        self.search = search_box("گەڕان بە ناو یان جۆر…", self.refresh, 220)
+        self.search = search_box("ناو، جۆر یان بارکۆد…", self.refresh, 220)
         top.addWidget(self.search); v.addLayout(top)
         self.sum_lbl = label("", "hint"); v.addWidget(self.sum_lbl)
         self.grid = CardGrid("هیچ کاڵایەک نەدۆزرایەوە", on_open=self.edit)
         v.addWidget(self.grid, 1)
 
     def refresh(self):
-        q = f"%{self.search.text().strip()}%"
+        text = self.search.text().strip()
+        q = f"%{text}%"
         rows = db.q("SELECT * FROM items WHERE name LIKE ? OR IFNULL(kind,'') LIKE ? "
-                    "ORDER BY name", (q, q))
+                    "OR IFNULL(barcode,'') LIKE ? ORDER BY name", (q, q, f"%{bc.norm(text)}%"))
         low = [r for r in rows if r["minq"] and r["qty"] <= r["minq"]]
         value = sum(r["qty"] * r["cost"] for r in rows)
         self.sum_lbl.setText(f"{len(rows)} کاڵا   ·   {len(low)} کەمبوو   ·   "
                              f"بەهای مەخزەن: {money(value)}   {usd(value)}")
         self.grid.set_cards([ItemCard(r) for r in (low if self.flt.checkedId() == 1 else rows)])
+        # a scanned code picks its item straight away
+        hit = db.item_by_code(bc.norm(text))
+        if hit and any(c.rid == hit["id"] for c in self.grid.cards):
+            self.grid.pick(hit["id"])
 
     def _picked(self):
         i = self.grid.selected
@@ -68,27 +144,51 @@ class Inventory(QWidget):
         kind.addItems([""] + [k["kind"] for k in db.q(
             "SELECT DISTINCT kind FROM items WHERE IFNULL(kind,'')<>'' ORDER BY kind")])
         unit = QLineEdit(); unit.setPlaceholderText("لیتر / کارتۆن / کیلۆ / دانە")
+        code = ScanEdit("سکان بکە یان بینووسە", next_focus=True)
+        code.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
+        code.returnPressed.connect(lambda: code.setText(bc.norm(code.text())))
+        gen = btn("درووستکردن", lambda: code.setText(
+            bc.generate(lambda c: db.item_by_code(c) is not None)))
+        gen.setToolTip("ژمارەیەکی نوێ بۆ کاڵایەک کە بارکۆدی نییە")
+        gen.setAutoDefault(False)
+        crow = QHBoxLayout(); crow.setSpacing(8); crow.addWidget(code, 1); crow.addWidget(gen)
         qty, cost, price, minq = num(dec=2), num(dec=2), num(dec=2), num(dec=2)
         if r:
             name.setText(r["name"]); kind.setCurrentText(r["kind"] or "")
-            unit.setText(r["unit"] or ""); qty.setValue(r["qty"])
+            unit.setText(r["unit"] or ""); code.setText(r["barcode"] or ""); qty.setValue(r["qty"])
             cost.setValue(r["cost"]); price.setValue(r["price"]); minq.setValue(r["minq"])
         f.addRow("ناو", name); f.addRow("جۆر", kind); f.addRow("یەکە", unit)
+        f.addRow("بارکۆد", crow)
         f.addRow("بڕی ئێستا" if r else "بڕی سەرەتا", qty)
         f.addRow("تێچووی یەکە", cost); f.addRow("نرخی فرۆشتن", price)
         f.addRow("کەمترین بڕ (ئاگاداری)", minq)
+
+        def check():
+            """Refuse a barcode another item already uses, keeping the dialog open."""
+            c = bc.norm(code.text()); code.setText(c)
+            if c and not bc.valid(c):
+                code.setFocus(); return msg(d, "بارکۆد تەنها ژمارە و پیتی ئینگلیزی وەردەگرێت")
+            other = db.item_by_code(c, r["id"] if r else None)
+            if other:
+                code.setFocus(); code.selectAll()
+                return msg(d, f"ئەم بارکۆدە پێشتر بۆ «{other['name']}» تۆمارکراوە")
+            QDialog.accept(d)
+
+        d.accept = check
         ok = dlg_buttons(d, f)
         ok.setEnabled(bool(name.text().strip()))
         name.textChanged.connect(lambda s: ok.setEnabled(bool(s.strip())))
         if d.exec() and name.text().strip():
             return (name.text().strip(), kind.currentText().strip(), unit.text().strip(),
+                    bc.norm(code.text()) or None,
                     qty.value(), cost.value(), price.value(), minq.value())
         return None
 
     def add(self):
         v = self.form()
         if v:
-            db.x("INSERT INTO items(name,kind,unit,qty,cost,price,minq) VALUES(?,?,?,?,?,?,?)", v)
+            db.x("INSERT INTO items(name,kind,unit,barcode,qty,cost,price,minq) "
+                 "VALUES(?,?,?,?,?,?,?,?)", v)
             self.app.refresh_all(); self.app.toast("کاڵا زیادکرا")
 
     def edit(self):
@@ -96,9 +196,23 @@ class Inventory(QWidget):
         if not i: return
         v = self.form(db.one("SELECT * FROM items WHERE id=?", (i,)))
         if v:
-            db.x("UPDATE items SET name=?,kind=?,unit=?,qty=?,cost=?,price=?,minq=? WHERE id=?",
-                 (*v, i))
+            db.x("UPDATE items SET name=?,kind=?,unit=?,barcode=?,qty=?,cost=?,price=?,minq=? "
+                 "WHERE id=?", (*v, i))
             self.app.refresh_all()
+
+    def labels(self):
+        i = self._picked()
+        if not i: return
+        it = db.one("SELECT * FROM items WHERE id=?", (i,))
+        code = it["barcode"]
+        if not code:
+            if not ask(self, f"«{it['name']}» بارکۆدی نییە.\nژمارەیەکی نوێی بۆ درووست بکەم؟"):
+                return
+            code = bc.generate(lambda c: db.item_by_code(c) is not None)
+            db.x("UPDATE items SET barcode=? WHERE id=?", (code, i))
+            self.app.refresh_all()
+        labels_dialog(self, it["name"], code, money(it["price"]))
+        self.app.refresh_all()
 
     def rm(self):
         i = self._picked()
@@ -601,8 +715,8 @@ class Reports(QWidget):
                 w = csv.writer(f); w.writerow(head); w.writerows(rows)
 
         try:
-            write("inventory.csv", ["ناو", "جۆر", "یەکە", "بڕ", "تێچوو", "نرخ"],
-                  [[r["name"], r["kind"], r["unit"], r["qty"], r["cost"], r["price"]]
+            write("inventory.csv", ["ناو", "جۆر", "یەکە", "بارکۆد", "بڕ", "تێچوو", "نرخ"],
+                  [[r["name"], r["kind"], r["unit"], r["barcode"], r["qty"], r["cost"], r["price"]]
                    for r in db.q("SELECT * FROM items ORDER BY name")])
             write("debts.csv", ["کڕیار", "مۆبایل", "قەرز"],
                   [[c["name"], c["phone"], c["bal"]] for c in db.customers()])

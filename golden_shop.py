@@ -63,6 +63,7 @@ class Main(QMainWindow):
         for i in range(len(self.PAGES)):
             QShortcut(QKeySequence(f"Ctrl+{i + 1}"), self, lambda n=i: self.go(n))
         QShortcut(QKeySequence("Ctrl+N"), self, self.new_invoice)
+        QShortcut(QKeySequence("F2"), self, self.new_invoice)
         QShortcut(QKeySequence("F5"), self, self.refresh_all)
 
         self.go(0)
@@ -140,6 +141,8 @@ class Main(QMainWindow):
         self.stack.setCurrentIndex(i)
         self.title.setText(name); self.sub.setText(desc)
         self.refresh_all()
+        if k == "sale" and self.sale.tabs.currentIndex() == 0:
+            self.sale.scan.setFocus()          # ready for the scanner straight away
 
     def new_invoice(self):
         self.go(1); self.sale.new_invoice()

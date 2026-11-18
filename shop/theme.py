@@ -84,6 +84,8 @@ ICONS = {
     "lock": '<rect x="4.500" y="10.500" width="15" height="10" rx="2"/><path d="M8 10.500V7.500a4 4 0 0 1 8 0v3"/>',
     "print": '<path d="M7 8V3.500h10V8"/><rect x="3" y="8" width="18" height="9" rx="2"/><path d="M7 14h10v6.500H7z"/>',
     "pdf":  '<path d="M14 2.500H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.500z"/><path d="M14 2.500v5h5M12 11.500v6M9.500 15l2.500 2.500 2.500-2.500"/>',
+    "barcode": '<path d="M3 7.5V5a2 2 0 0 1 2-2h2.5M16.5 3H19a2 2 0 0 1 2 2v2.5M21 16.5V19a2 2 0 0 1-2 2h-2.5M7.5 21H5a2 2 0 0 1-2-2v-2.5"/>'
+               '<path d="M7.5 8v8M10.5 8v8M13 8v8M16.5 8v8"/>',
     "chev": '<path d="M6 9.500l6 6 6-6"/>',
     "cal":  '<rect x="3.500" y="5" width="17" height="15.500" rx="2"/><path d="M3.500 10h17M8 3v4M16 3v4"/>',
 }

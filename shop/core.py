@@ -92,6 +92,9 @@ class DB:
             self.con.execute("ALTER TABLE purchases ADD COLUMN paid REAL DEFAULT 0")
             # the old version had no supplier debts: every purchase was cash
             self.con.execute("UPDATE purchases SET paid=qty*price")
+        if "barcode" not in {r["name"] for r in self.q("PRAGMA table_info(items)")}:
+            self.con.execute("ALTER TABLE items ADD COLUMN barcode TEXT")
+        self.con.execute("CREATE INDEX IF NOT EXISTS items_barcode ON items(barcode)")
         # purchases that only carry a typed supplier name get a real supplier
         for r in self.q("SELECT DISTINCT TRIM(supplier) n FROM purchases "
                         "WHERE supplier_id IS NULL AND TRIM(IFNULL(supplier,''))<>''"):
@@ -130,6 +133,11 @@ class DB:
         s = f"%{search}%"
         return self.q(f"SELECT c.*, {CUST_BAL} bal FROM customers c "
                       "WHERE c.name LIKE ? OR IFNULL(c.phone,'') LIKE ? ORDER BY c.name", (s, s))
+
+    def item_by_code(self, code, skip=None):
+        """The item carrying this barcode (other than item `skip`), or None."""
+        if not code: return None
+        return self.one("SELECT * FROM items WHERE barcode=? AND id IS NOT ?", (code, skip))
 
     def supplier_balance(self, sid):
         return self.val(f"SELECT {SUP_BAL} FROM suppliers s WHERE s.id=?", (sid,))

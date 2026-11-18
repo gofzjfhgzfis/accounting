@@ -116,6 +116,34 @@ def label(text="", name="", wrap=False):
     return l
 
 
+class ScanEdit(QLineEdit):
+    """Input for barcodes.
+
+    A scanner ends every code with Enter. In a dialog that Enter would also
+    press the default button and close it half-filled, so it stops here.
+    """
+
+    def __init__(self, placeholder="", next_focus=False):
+        super().__init__()
+        self.next_focus = next_focus
+        self.setPlaceholderText(placeholder)
+        self.setClearButtonEnabled(True)
+
+    def keyPressEvent(self, e):
+        if e.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+            super().keyPressEvent(e)          # emits returnPressed
+            e.accept()
+            if self.next_focus: self.focusNextChild()
+            return
+        super().keyPressEvent(e)
+
+
+def tone(lbl, name):
+    """Switch a label's colour role (txtGood, txtBad, hint…) after creation."""
+    lbl.setObjectName(name)
+    lbl.style().unpolish(lbl); lbl.style().polish(lbl)
+
+
 def heading(text):
     return label(text, "secTitle")
 

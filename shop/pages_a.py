@@ -6,6 +6,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import *
 
 from .core import db, fmt, money, usd, today, lrm, esc
+from . import barcode as bc
 from .theme import T
 from .ui import *
 
@@ -202,7 +203,15 @@ class Sales(QWidget):
         self.dt = date_edit(); sv.addLayout(field("بەروار", self.dt))
         sv.addSpacing(8)
         sv.addWidget(heading("زیادکردنی کاڵا"))
+        self.scan = ScanEdit("سکانی بارکۆد بکە…  (F2)")
+        self.scan.addAction(icon("barcode", T.MUTED, 18), QLineEdit.ActionPosition.LeadingPosition)
+        self.scan.returnPressed.connect(self.scan_code)
+        sv.addWidget(self.scan)
+        self.scan_hint = label("بە سکانکردن کاڵاکە یەکسەر دەچێتە سەر پسووڵە.", "hint", wrap=True)
+        sv.addWidget(self.scan_hint)
+        sv.addSpacing(2)
         self.item = combo(editable=True)
+        self.item.lineEdit().setPlaceholderText("یان ناوی کاڵا بنووسە")
         self.item.currentTextChanged.connect(lambda _: self.autoprice())
         sv.addWidget(self.item)
         self.item_hint = label("", "hint"); sv.addWidget(self.item_hint)
@@ -291,7 +300,7 @@ class Sales(QWidget):
 
     def new_invoice(self):
         self.tabs.setCurrentIndex(0)
-        self.item.setFocus()
+        self.scan.setFocus()
 
     def load_list(self):
         where, p = ["1=1"], []
@@ -324,25 +333,55 @@ class Sales(QWidget):
         else:
             self.item_hint.setText("کاڵایەک هەڵبژێرە یان ناوەکەی بنووسە")
 
+    def _add(self, it, qty, price):
+        """Put `qty` of item row `it` on the invoice. False when the user backs out."""
+        # what is already on this invoice counts against the stock too
+        already = sum(l["qty"] for l in self.lines if l["id"] == it["id"])
+        if already + qty > it["qty"] + EPS:
+            if not ask(self, f"بڕی «{it['name']}» لە مەخزەن تەنها {fmt(it['qty'])}ە. بەردەوام بم؟"):
+                return False
+        for l in self.lines:
+            if l["id"] == it["id"] and l["price"] == price:
+                l["qty"] += qty
+                break
+        else:
+            self.lines.append({"id": it["id"], "name": it["name"], "qty": qty,
+                               "price": price, "cost": it["cost"]})
+        self.calc()
+        return True
+
     def add_line(self):
         i = combo_data(self.item)
+        if not i:
+            # a barcode typed or scanned into the item box works too
+            hit = db.item_by_code(bc.norm(self.item.currentText()))
+            if hit:
+                self.item.setCurrentIndex(self.item.findData(hit["id"]))
+                i = hit["id"]
         if not i: return msg(self, "ئەم کاڵایە لە مەخزەندا نییە")
         if self.qty.value() <= 0: return
         it = db.one("SELECT * FROM items WHERE id=?", (i,))
-        # what is already on this invoice counts against the stock too
-        already = sum(l["qty"] for l in self.lines if l["id"] == i)
-        if already + self.qty.value() > it["qty"] + EPS:
-            if not ask(self, f"بڕی مەخزەن تەنها {fmt(it['qty'])}ە. بەردەوام بم؟"): return
-        for l in self.lines:
-            if l["id"] == i and l["price"] == self.pr.value():
-                l["qty"] += self.qty.value()
-                break
-        else:
-            self.lines.append({"id": i, "name": it["name"], "qty": self.qty.value(),
-                               "price": self.pr.value(), "cost": it["cost"]})
-        self.qty.setValue(1)
-        self.calc()
+        if self._add(it, self.qty.value(), self.pr.value()):
+            self.qty.setValue(1)
         self.item.setFocus(); self.item.lineEdit().selectAll()
+
+    def scan_code(self):
+        """One scan = one more of that item at its selling price."""
+        code = bc.norm(self.scan.text())
+        self.scan.clear()
+        if not code: return
+        it = db.item_by_code(code)
+        if not it:
+            QApplication.beep()
+            self.scan_hint.setText(f"بارکۆدی {lrm(code)} لە مەخزەندا نییە")
+            tone(self.scan_hint, "txtBad")
+        elif self._add(it, 1, it["price"]):
+            n = sum(l["qty"] for l in self.lines if l["id"] == it["id"])
+            # ⁨…⁩ keeps a name like «ڕۆنی 5W-30» in one piece inside RTL text
+            self.scan_hint.setText(f"✓  ⁨{it['name']}⁩ زیادکرا  ·  "
+                                   f"{fmt(n)} {it['unit'] or ''}".strip())
+            tone(self.scan_hint, "txtGood")
+        self.scan.setFocus()
 
     def rm_line(self):
         r = sel_row(self.lt)
@@ -407,6 +446,9 @@ class Sales(QWidget):
         d.exec()
         if d.clickedButton() is b_print: print_html(self, invoice_html(iid))
         elif d.clickedButton() is b_pdf: save_pdf(self, invoice_html(iid), f"invoice_{iid}.pdf")
+        self.scan_hint.setText("بە سکانکردن کاڵاکە یەکسەر دەچێتە سەر پسووڵە.")
+        tone(self.scan_hint, "hint")
+        self.scan.setFocus()
 
     # ---- کردارەکانی لیست ----
     def _picked(self):
