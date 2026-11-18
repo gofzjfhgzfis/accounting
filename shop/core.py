@@ -3,7 +3,7 @@
 import os, re, sqlite3, shutil, datetime, configparser, hashlib
 
 APP_TITLE = "سیستەمی دووکانی جوملە"
-VERSION   = "٢٫٠"
+VERSION   = "٢٫١"
 APP_DIR   = os.path.join(os.path.expanduser("~"), "OilShopAccounting")
 os.makedirs(APP_DIR, exist_ok=True)
 
