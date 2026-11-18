@@ -343,10 +343,19 @@ class SalesPageState extends State<SalesPage> {
               cardRow(context, 'ماوە (قەرز)', money(due), color: due > eps ? c.red : c.green),
               Row(children: [
                 label(context, 'کۆی گشتی', color: c.muted),
-                const Spacer(),
-                label(context, tot > 0 ? usd(tot) : '', size: 13, color: c.muted),
                 const SizedBox(width: 8),
-                label(context, money(tot), size: 27, w: FontWeight.w800, color: c.goldHi),
+                // a big total shrinks to fit rather than spill out of the panel
+                Expanded(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: Row(children: [
+                      label(context, tot > 0 ? usd(tot) : '', size: 13, color: c.muted),
+                      const SizedBox(width: 8),
+                      label(context, money(tot), size: 27, w: FontWeight.w800, color: c.goldHi),
+                    ]),
+                  ),
+                ),
               ]),
               const SizedBox(height: 6),
               SizedBox(height: 46, child: Btn.primary('تۆمارکردنی پسووڵە', save)),
