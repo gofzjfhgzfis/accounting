@@ -1,9 +1,10 @@
 ; دامەزرێنەری سیستەمی دووکانی جوملە
 ; بە Inno Setup درووست دەکرێت — بڕوانە build.bat
+; پێش ئەمە دەبێت `flutter build windows --release` جێبەجێ کرابێت.
 
 #define AppName    "Oil Shop Accounting"
 #define AppNameKu  "سیستەمی دووکانی جوملە"
-#define AppVersion "2.1"
+#define AppVersion "3.0"
 #define AppExe     "OilShopAccounting.exe"
 
 [Setup]
@@ -42,7 +43,8 @@ en.RunEntryExec=کردنەوەی [name]
 Name: "desktopicon"; Description: "شۆرتکەت لەسەر دێسکتۆپ درووست بکە"; GroupDescription: "شۆرتکەتەکان:"
 
 [Files]
-Source: "dist\{#AppExe}"; DestDir: "{app}"; Flags: ignoreversion
+; the whole Flutter build folder: the exe, its DLLs and the data folder
+Source: "build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\{#AppNameKu}"; Filename: "{app}\{#AppExe}"

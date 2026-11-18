@@ -24,3 +24,15 @@ Thumbs.db
 
 # ئامرازە ناوخۆییەکان
 .claude/
+
+# Flutter / Dart
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+windows/flutter/ephemeral/
+*.iml
+.idea/
