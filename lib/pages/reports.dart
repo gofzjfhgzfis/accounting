@@ -40,10 +40,14 @@ class ReportsPageState extends State<ReportsPage> {
   String get a => from.iso;
   String get b => to.iso;
 
+  /// Best sellers, after taking off goods that came back.
   List<Rec> topItems() => db.q(
-      "SELECT IFNULL(it.name,'—') n, SUM(ii.qty) q, SUM(ii.qty*ii.price) v, SUM(ii.qty*(ii.price-ii.cost)) pr "
-      'FROM invoice_items ii JOIN invoices i ON i.id=ii.invoice_id LEFT JOIN items it ON it.id=ii.item_id '
-      'WHERE i.date BETWEEN ? AND ? GROUP BY ii.item_id ORDER BY v DESC LIMIT 15', [a, b]);
+      "SELECT IFNULL(it.name,'—') n, SUM(t.q) q, SUM(t.v) v, SUM(t.pr) pr FROM ("
+      'SELECT ii.item_id id, ii.qty q, ii.qty*ii.price v, ii.qty*(ii.price-ii.cost) pr FROM invoice_items ii '
+      'JOIN invoices i ON i.id=ii.invoice_id WHERE i.date BETWEEN ? AND ? '
+      'UNION ALL SELECT ri.item_id, -ri.qty, -ri.qty*ri.price, -ri.qty*(ri.price-ri.cost) FROM return_items ri '
+      'JOIN returns r ON r.id=ri.return_id WHERE r.date BETWEEN ? AND ?'
+      ') t LEFT JOIN items it ON it.id=t.id GROUP BY t.id HAVING SUM(t.q)>0 ORDER BY v DESC LIMIT 15', [a, b, a, b]);
 
   List<Rec> topCustomers() => db.q(
       "SELECT IFNULL(c.name,'$walkIn') n, COUNT(*) k, SUM(i.total) v FROM invoices i "
@@ -93,7 +97,9 @@ class ReportsPageState extends State<ReportsPage> {
     String m(double v) => money(v);
     return Doc('ڕاپۆرتی گشتی', '${lrm(a)}   تا   ${lrm(b)}', [
       Totals([
-        ('کۆی فرۆشتن — ${pr.count} پسووڵە', m(pr.sales), true, ink, true),
+        ('کۆی فرۆشتن — ${pr.count} پسووڵە', m(pr.sales + pr.returns), true, ink, true),
+        ('گەڕاندنەوە', m(pr.returns), false, ink, false),
+        ('فرۆشتنی سافی', m(pr.sales), true, ink, true),
         ('تێچووی کاڵای فرۆشراو', m(pr.cogs), false, ink, false),
         ('قازانجی خاو', m(pr.gross), true, ink, true),
         ('مەسروفات', m(pr.exp), false, ink, false),
@@ -143,6 +149,11 @@ class ReportsPageState extends State<ReportsPage> {
             'WHERE i.date BETWEEN ? AND ? ORDER BY i.id', [a, b]))
           [r['id'], r['date'], r['cn'], r['subtotal'], r['discount'], r['total'], r['paid']]
       ]);
+      write('returns.csv', ['ژمارە', 'بەروار', 'پسووڵە', 'کڕیار', 'بەها', 'پارەی گەڕێنراوە', 'تێبینی'], [
+        for (final r in db.q("SELECT r.*, IFNULL(c.name,'$walkIn') cn FROM returns r LEFT JOIN customers c ON c.id=r.customer_id "
+            'WHERE r.date BETWEEN ? AND ? ORDER BY r.id', [a, b]))
+          [r['id'], r['date'], r['invoice_id'], r['cn'], r['total'], r['refund'], r['note']]
+      ]);
       write('expenses.csv', ['بەروار', 'جۆر', 'بڕ', 'تێبینی'], [
         for (final r in db.q('SELECT * FROM expenses WHERE date BETWEEN ? AND ? ORDER BY date', [a, b]))
           [r['date'], r['category'], r['amount'], r['note']]
@@ -151,7 +162,7 @@ class ReportsPageState extends State<ReportsPage> {
       if (mounted) info(context, 'نەتوانرا هەناردە بکرێت:\n$e');
       return;
     }
-    toast('٥ فایلی CSV هەناردەکران');
+    toast('٦ فایلی CSV هەناردەکران');
     openPath(dir);
   }
 
@@ -161,7 +172,9 @@ class ReportsPageState extends State<ReportsPage> {
     final pr = db.period(a, b);
     final items = topItems(), custs = topCustomers();
     final cards = [
-      StatCard('کۆی فرۆشتن', money(pr.sales), '${pr.count} پسووڵە   ${usd(pr.sales)}', Icons.receipt_long_outlined, c.blue),
+      StatCard('کۆی فرۆشتن', money(pr.sales),
+          pr.returns > eps ? '${pr.count} پسووڵە  ·  گەڕاندنەوە ${fmt(pr.returns)}' : '${pr.count} پسووڵە   ${usd(pr.sales)}',
+          Icons.receipt_long_outlined, c.blue),
       StatCard('قازانجی خاو', money(pr.gross), 'تێچووی کاڵا: ${fmt(pr.cogs)}', Icons.trending_up, c.green),
       StatCard('مەسروفات و مووچە', money(pr.exp + pr.sal), 'مەسروف ${fmt(pr.exp)}  ·  مووچە ${fmt(pr.sal)}',
           Icons.account_balance_wallet_outlined, c.red),

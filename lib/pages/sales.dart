@@ -9,6 +9,7 @@ import '../print/docs.dart';
 import '../ui/theme.dart';
 import '../ui/widgets.dart';
 import 'dashboard.dart' show eps;
+import 'guard.dart';
 
 class Line {
   final int id;
@@ -153,6 +154,8 @@ class SalesPageState extends State<SalesPage> {
     }
     final s = sub, disc = d.disc.n.clamp(0, s).toDouble(), tot = s - disc;
     final paid = cid == 0 ? tot : d.paid.n.clamp(0, tot).toDouble();
+    if (!dayOpen(context, d.date.iso)) return;
+    final who = cid == 0 ? walkIn : d.cust.text.trim();
     final iid = db.tx(() {
       final iid = db.x('INSERT INTO invoices(date,customer_id,subtotal,discount,total,paid,note) VALUES(?,?,?,?,?,?,?)',
           [d.date.iso, cid == 0 ? null : cid, s, disc, tot, paid, d.note.text]);
@@ -161,6 +164,7 @@ class SalesPageState extends State<SalesPage> {
             [iid, l.id, l.qty, l.price, l.cost]);
         db.x('UPDATE items SET qty=qty-? WHERE id=?', [l.qty, l.id]);
       }
+      db.log('sale', 'add', 'پسووڵە ${no(iid)} — $who — کۆ ${money(tot)}، دراو ${money(paid)}', ref: iid, amount: tot);
       return iid;
     });
     d.lines.clear();
@@ -211,9 +215,9 @@ class SalesPageState extends State<SalesPage> {
           ),
         );
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Row(children: [tabBtn('پسووڵەی نوێ', 0), tabBtn('پسووڵەکان', 1)]),
+      Row(children: [tabBtn('پسووڵەی نوێ', 0), tabBtn('پسووڵەکان', 1), tabBtn('گەڕاندنەوەکان', 2)]),
       const SizedBox(height: 14),
-      Expanded(child: d.tab == 0 ? _newTab(context) : _listTab(context)),
+      Expanded(child: switch (d.tab) { 0 => _newTab(context), 1 => _listTab(context), _ => _returnsTab(context) }),
     ]);
   }
 
@@ -387,7 +391,8 @@ class SalesPageState extends State<SalesPage> {
       args.add(today());
     }
     final w = where.join(' AND ');
-    final rows = db.q("SELECT i.*, IFNULL(c.name,'$walkIn') cn FROM invoices i "
+    final rows = db.q("SELECT i.*, IFNULL(c.name,'$walkIn') cn, "
+        '(SELECT SUM(total) FROM returns WHERE invoice_id=i.id) rt FROM invoices i '
         'LEFT JOIN customers c ON c.id=i.customer_id WHERE $w ORDER BY i.id DESC LIMIT 150', args);
     final sum = db.one('SELECT COUNT(*) n, IFNULL(SUM(i.total),0) t, IFNULL(SUM(i.total-i.paid),0) d '
         'FROM invoices i LEFT JOIN customers c ON c.id=i.customer_id WHERE $w', args)!;
@@ -396,6 +401,8 @@ class SalesPageState extends State<SalesPage> {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Row(children: [
         Btn('بینین', () => view(picked)),
+        const SizedBox(width: 8),
+        Btn('گەڕاندنەوە', () => returnGoods(picked), icon: Icons.assignment_return_outlined),
         const SizedBox(width: 8),
         Btn('PDF', () => pdf(picked), icon: Icons.picture_as_pdf_outlined),
         const SizedBox(width: 8),
@@ -431,6 +438,7 @@ class SalesPageState extends State<SalesPage> {
                   cardRow(context, 'بەروار', lrm(r['date']), color: c.muted, strong: false),
                   cardRow(context, 'کۆ', money(r['total'])),
                   if (due > eps) cardRow(context, 'ماوە', money(due), color: c.red),
+                  if (toD(r['rt']) > eps) cardRow(context, 'گەڕێنراوە', money(r['rt']), color: c.orange),
                 ],
               );
             }(),
@@ -456,8 +464,19 @@ class SalesPageState extends State<SalesPage> {
 
   Future<void> remove(int? iid) async {
     if (!_need(iid)) return;
-    if (!await confirm(context, 'پسووڵە ${no(iid)} بسڕدرێتەوە؟\nبڕەکان دەگەڕێنەوە بۆ مەخزەن.')) return;
+    final inv = db.one("SELECT i.*, IFNULL(c.name,'$walkIn') cn FROM invoices i "
+        'LEFT JOIN customers c ON c.id=i.customer_id WHERE i.id=?', [iid])!;
+    if (db.val('SELECT COUNT(*) FROM returns WHERE invoice_id=?', [iid]) > 0) {
+      return info(context, 'ئەم پسووڵەیە گەڕاندنەوەی لەسەرە، بۆیە ناسڕدرێتەوە.');
+    }
+    if (!dayOpen(context, inv['date'] as String)) return;
+    if (!await confirm(context, 'پسووڵە ${no(iid)} بسڕدرێتەوە؟\nبڕەکان دەگەڕێنەوە بۆ مەخزەن.\n\n'
+        'باشترە لەبری سڕینەوە «گەڕاندنەوە» بەکاربهێنیت، تا مێژووەکە بمێنێتەوە.')) {
+      return;
+    }
     db.tx(() {
+      db.log('sale', 'delete', 'پسووڵە ${no(iid)} سڕایەوە — ${inv['cn']} — ${lrm(inv['date'])} — ${money(inv['total'])}',
+          ref: iid, amount: toD(inv['total']));
       for (final r in db.q('SELECT * FROM invoice_items WHERE invoice_id=?', [iid])) {
         db.x('UPDATE items SET qty=qty+? WHERE id=?', [r['qty'], r['item_id']]);
       }
@@ -466,6 +485,225 @@ class SalesPageState extends State<SalesPage> {
     });
     appState.changed();
     toast('پسووڵەکە سڕایەوە');
+  }
+
+  // ---------------------------------------------------------------- گەڕاندنەوە
+  /// Take goods back from invoice [iid]: stock goes up, and their value is
+  /// paid back in cash or taken off what the customer owes.
+  Future<void> returnGoods(int? iid) async {
+    if (!_need(iid)) return;
+    final inv = db.one("SELECT i.*, IFNULL(c.name,'$walkIn') cn FROM invoices i "
+        'LEFT JOIN customers c ON c.id=i.customer_id WHERE i.id=?', [iid])!;
+    final cid = inv['customer_id'] as int?;
+    // the invoice discount is shared over its lines, so a return gives back
+    // what was really paid for the goods
+    final f = toD(inv['subtotal']) > 0 ? toD(inv['total']) / toD(inv['subtotal']) : 1.0;
+    final lines = [
+      for (final r in db.q("SELECT ii.item_id, IFNULL(it.name,'—') name, IFNULL(it.unit,'') unit, SUM(ii.qty) q, "
+          'SUM(ii.qty*ii.price)/SUM(ii.qty) p, SUM(ii.qty*ii.cost)/SUM(ii.qty) cost '
+          'FROM invoice_items ii LEFT JOIN items it ON it.id=ii.item_id WHERE ii.invoice_id=? GROUP BY ii.item_id', [iid]))
+        (
+          id: r['item_id'] as int, name: r['name'] as String, unit: r['unit'] as String,
+          sold: toD(r['q']), back: db.returnedQty(iid!, r['item_id'] as int),
+          price: toD(r['p']) * f, cost: toD(r['cost']), ctl: NumCtrl(0),
+        ),
+    ];
+    if (lines.every((l) => l.sold - l.back <= eps)) {
+      return info(context, 'هەموو کاڵاکانی ئەم پسووڵەیە پێشتر گەڕێنراونەتەوە.');
+    }
+    final date = DateCtrl(), refund = NumCtrl(), note = TextEditingController();
+    var auto = true;   // the refund follows the return until it is typed in
+    final owed = cid == null ? 0.0 : db.balance(cid);
+    double total() => lines.fold(0, (s, l) => s + l.ctl.n.clamp(0, l.sold - l.back) * l.price);
+    // by default the return first clears what the customer owes, the rest is paid back
+    double suggested() => cid == null ? total() : (total() - (owed > 0 ? owed : 0)).clamp(0, total()).toDouble();
+
+    final ok = await formDialog<bool>(
+      context,
+      'گەڕاندنەوەی کاڵا — پسووڵە ${no(iid)}',
+      width: 640,
+      saveText: 'تۆمارکردنی گەڕاندنەوە',
+      body: (c, set) {
+        void sync() => set(() {
+              if (auto) refund.n = suggested();
+            });
+        final t = total();
+        return [
+          hint(c, '${inv['cn']}   ·   ${lrm(inv['date'])}   ·   کۆی پسووڵە ${money(inv['total'])}'),
+          Container(
+            decoration: BoxDecoration(border: Border.all(color: c.pal.border), borderRadius: BorderRadius.circular(10)),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: Column(children: [
+              Row(children: [
+                Expanded(flex: 5, child: label(c, 'کاڵا', size: 13, w: FontWeight.w700, color: c.pal.faint)),
+                Expanded(flex: 2, child: label(c, 'فرۆشراو', size: 13, w: FontWeight.w700, color: c.pal.faint)),
+                Expanded(flex: 2, child: label(c, 'گەڕاوە', size: 13, w: FontWeight.w700, color: c.pal.faint)),
+                Expanded(flex: 3, child: label(c, 'بڕی گەڕاندنەوە', size: 13, w: FontWeight.w700, color: c.pal.faint)),
+                Expanded(flex: 3, child: label(c, 'بەها', size: 13, w: FontWeight.w700, color: c.pal.faint, align: TextAlign.end)),
+              ]),
+              const SizedBox(height: 4),
+              for (final l in lines)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(children: [
+                    Expanded(flex: 5, child: label(c, l.name, lines: 1)),
+                    Expanded(flex: 2, child: label(c, '${fmt(l.sold)} ${l.unit}'.trim(), color: c.pal.muted)),
+                    Expanded(flex: 2, child: label(c, fmt(l.back), color: l.back > 0 ? c.pal.orange : c.pal.faint)),
+                    Expanded(
+                      flex: 3,
+                      child: Row(children: [
+                        Expanded(child: NumBox(l.ctl, enabled: l.sold - l.back > eps, onChanged: (_) => sync())),
+                        IconButton(
+                          tooltip: 'هەمووی',
+                          icon: const Icon(Icons.keyboard_double_arrow_left, size: 18),
+                          onPressed: l.sold - l.back > eps ? () {
+                            l.ctl.n = l.sold - l.back;
+                            sync();
+                          } : null,
+                        ),
+                      ]),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: label(c, fmt(l.ctl.n.clamp(0, l.sold - l.back) * l.price),
+                          align: TextAlign.end, w: FontWeight.w700),
+                    ),
+                  ]),
+                ),
+            ]),
+          ),
+          formRow(c, 'بەروار', DateBox(date)),
+          formRow(c, 'کۆی گەڕاندنەوە', label(c, money(t), size: 17, w: FontWeight.w800, color: c.pal.goldHi)),
+          formRow(c, 'پارەی گەڕێنراوە', NumBox(refund, enabled: cid != null, onChanged: (_) => set(() => auto = false))),
+          Padding(
+            padding: const EdgeInsetsDirectional.only(start: 130),
+            child: hint(c, cid == null
+                ? 'کڕیاری نەقد: هەموو بەهاکە بە پارە دەگەڕێنرێتەوە.'
+                : 'ئەوەی بە پارە نەگەڕێنرێتەوە لە قەرزی کڕیارەکە کەم دەکرێتەوە '
+                    '(قەرزی ئێستا: ${money(owed)}، دوای گەڕاندنەوە: ${money(owed - (t - refund.n.clamp(0, t)))}).'),
+          ),
+          formRow(c, 'تێبینی', textBox(c, note, hintText: 'هۆکاری گەڕاندنەوە')),
+        ];
+      },
+      onSave: (c) {
+        if (total() <= eps) {
+          info(c, 'بڕی گەڕاندنەوەی لانیکەم یەک کاڵا بنووسە');
+          return null;
+        }
+        for (final l in lines) {
+          if (l.ctl.n > l.sold - l.back + eps) {
+            info(c, 'لە «${l.name}» تەنها ${fmt(l.sold - l.back)} دەگەڕێتەوە');
+            return null;
+          }
+        }
+        if (!dayOpen(c, date.iso)) return null;
+        return true;
+      },
+    );
+    if (ok != true) return;
+    final t = total();
+    final paidBack = cid == null ? t : refund.n.clamp(0, t).toDouble();
+    final rid = db.tx(() {
+      final rid = db.x('INSERT INTO returns(date,invoice_id,customer_id,total,refund,note) VALUES(?,?,?,?,?,?)',
+          [date.iso, iid, cid, t, paidBack, note.text.trim()]);
+      for (final l in lines) {
+        final q = l.ctl.n.clamp(0, l.sold - l.back).toDouble();
+        if (q <= 0) continue;
+        db.x('INSERT INTO return_items(return_id,item_id,qty,price,cost) VALUES(?,?,?,?,?)', [rid, l.id, q, l.price, l.cost]);
+        db.x('UPDATE items SET qty=qty+? WHERE id=?', [q, l.id]);
+      }
+      db.log('return', 'add',
+          'گەڕاندنەوە ${no(rid)} بۆ پسووڵە ${no(iid)} — ${inv['cn']} — ${money(t)}، پارەی گەڕێنراوە ${money(paidBack)}',
+          ref: rid, amount: t);
+      return rid;
+    });
+    appState.changed();
+    if (!mounted) return;
+    final act = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('تۆمارکرا'),
+        content: Text('گەڕاندنەوە ${no(rid)} تۆمارکرا.\nکاڵاکان گەڕانەوە مەخزەن'
+            '${paidBack > eps ? '، و ${money(paidBack)} بە پارە بدەرەوە.' : '، و بەهاکەی لە قەرزی کڕیار کەمکرایەوە.'}'),
+        actions: [
+          Btn('چاپکردن', () => Navigator.pop(ctx, 'print'), icon: Icons.print_outlined),
+          Btn('PDF', () => Navigator.pop(ctx, 'pdf'), icon: Icons.picture_as_pdf_outlined),
+          Btn.primary('باشە', () => Navigator.pop(ctx)),
+        ],
+      ),
+    );
+    if (act == 'print') await printPdf(await docPdf(returnDoc(rid)), 'return_$rid');
+    if (act == 'pdf') await savePdf(await docPdf(returnDoc(rid)), 'return_$rid.pdf');
+  }
+
+  int? pickedReturn;
+
+  Widget _returnsTab(BuildContext context) {
+    final c = context.pal;
+    final rows = db.q("SELECT r.*, IFNULL(c.name,'$walkIn') cn, "
+        '(SELECT SUM(qty) FROM return_items WHERE return_id=r.id) q FROM returns r '
+        'LEFT JOIN customers c ON c.id=r.customer_id ORDER BY r.id DESC LIMIT 300');
+    if (pickedReturn != null && pickedReturn! >= rows.length) pickedReturn = null;
+    final sel = pickedReturn == null ? null : rows[pickedReturn!]['id'] as int;
+    final month = db.val('SELECT SUM(total) FROM returns WHERE date>=?', [isoDate(monthStart())]);
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Row(children: [
+        Btn('PDF', () async {
+          if (sel == null) return info(context, 'سەرەتا گەڕاندنەوەیەک هەڵبژێرە');
+          await savePdf(await docPdf(returnDoc(sel)), 'return_$sel.pdf');
+        }, icon: Icons.picture_as_pdf_outlined),
+        const SizedBox(width: 8),
+        Btn('چاپکردن', () async {
+          if (sel == null) return info(context, 'سەرەتا گەڕاندنەوەیەک هەڵبژێرە');
+          await printPdf(await docPdf(returnDoc(sel)), 'return_$sel');
+        }, icon: Icons.print_outlined),
+        const SizedBox(width: 8),
+        Btn.danger('سڕینەوە', () => removeReturn(sel)),
+        const Spacer(),
+        hint(context, 'بۆ گەڕاندنەوەی نوێ: لە «پسووڵەکان» پسووڵەکە هەڵبژێرە و «گەڕاندنەوە» بکە.'),
+      ]),
+      const SizedBox(height: 10),
+      hint(context, '${rows.length} گەڕاندنەوە   ·   ئەم مانگە: ${money(month)}'),
+      const SizedBox(height: 10),
+      Expanded(
+        child: Grid(
+          const [Col('#'), Col('بەروار', flex: 2), Col('پسووڵە'), Col('کڕیار', flex: 3), Col('بڕ'),
+              Col('بەها', flex: 2), Col('پارەی گەڕێنراوە', flex: 2), Col('تێبینی', flex: 3)],
+          [
+            for (final r in rows)
+              [
+                no(r['id']), lrm(r['date']), no(r['invoice_id']), r['cn'] as String, fmt(r['q']),
+                fmt(r['total']), fmt(r['refund']), (r['note'] as String?)?.isNotEmpty == true ? r['note'] as String : '—',
+              ]
+          ],
+          selected: pickedReturn,
+          onSelect: (i) => setState(() => pickedReturn = i),
+          colors: (r, col) => col == 5 ? c.orange : null,
+          empty: 'هێشتا هیچ کاڵایەک نەگەڕێنراوەتەوە',
+        ),
+      ),
+    ]);
+  }
+
+  Future<void> removeReturn(int? rid) async {
+    if (rid == null) return info(context, 'سەرەتا گەڕاندنەوەیەک هەڵبژێرە');
+    final r = db.one("SELECT r.*, IFNULL(c.name,'$walkIn') cn FROM returns r "
+        'LEFT JOIN customers c ON c.id=r.customer_id WHERE r.id=?', [rid])!;
+    if (!dayOpen(context, r['date'] as String)) return;
+    if (!await confirm(context, 'گەڕاندنەوە ${no(rid)} بسڕدرێتەوە؟\nکاڵاکان لە مەخزەن کەم دەکرێنەوە.')) return;
+    db.tx(() {
+      for (final it in db.q('SELECT * FROM return_items WHERE return_id=?', [rid])) {
+        db.x('UPDATE items SET qty=qty-? WHERE id=?', [it['qty'], it['item_id']]);
+      }
+      db.x('DELETE FROM return_items WHERE return_id=?', [rid]);
+      db.x('DELETE FROM returns WHERE id=?', [rid]);
+      db.log('return', 'delete',
+          'گەڕاندنەوە ${no(rid)} سڕایەوە — پسووڵە ${no(r['invoice_id'])} — ${r['cn']} — ${money(r['total'])}',
+          ref: rid, amount: toD(r['total']));
+    });
+    pickedReturn = null;
+    appState.changed();
+    toast('گەڕاندنەوەکە سڕایەوە');
   }
 
   Future<void> view(int? iid) async {
@@ -506,6 +744,8 @@ class SalesPageState extends State<SalesPage> {
               cardRow(ctx, 'داشکاندن', money(inv['discount'])),
               cardRow(ctx, 'کۆی گشتی', money(inv['total']), color: c.goldHi),
               cardRow(ctx, 'پارەی دراو', money(inv['paid']), color: c.green),
+              for (final r in db.q('SELECT * FROM returns WHERE invoice_id=? ORDER BY id', [iid]))
+                cardRow(ctx, 'گەڕاندنەوە ${no(r['id'])} — ${lrm(r['date'])}', money(r['total']), color: c.orange),
             ]),
           ),
           actions: [

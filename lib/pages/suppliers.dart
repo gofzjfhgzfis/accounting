@@ -6,6 +6,7 @@ import '../core/fmt.dart';
 import '../ui/theme.dart';
 import '../ui/widgets.dart';
 import 'dashboard.dart' show eps;
+import 'guard.dart';
 import 'people.dart';
 
 class SuppliersPage extends StatefulWidget {
@@ -36,15 +37,18 @@ class _SuppliersPageState extends State<SuppliersPage> {
     final v = await personForm(context, 'دابینکەری نوێ');
     if (v == null) return;
     picked = db.x('INSERT INTO suppliers(name,phone,address,note) VALUES(?,?,?,?)', v);
+    db.log('supplier', 'add', 'دابینکەری نوێ — ${v[0]}', ref: picked);
     appState.changed();
     toast('دابینکەر زیادکرا');
   }
 
   Future<void> edit() async {
     if (!_need()) return;
-    final v = await personForm(context, 'دەستکاری دابینکەر', _row);
+    final old = _row;
+    final v = await personForm(context, 'دەستکاری دابینکەر', old);
     if (v == null) return;
     db.x('UPDATE suppliers SET name=?,phone=?,address=?,note=? WHERE id=?', [...v, picked]);
+    db.log('supplier', 'edit', 'دەستکاری دابینکەر — ${old['name']}${old['name'] == v[0] ? '' : ' ← ${v[0]}'}', ref: picked);
     appState.changed();
   }
 
@@ -55,6 +59,7 @@ class _SuppliersPageState extends State<SuppliersPage> {
       return info(context, 'ناتوانرێت بسڕدرێتەوە — کڕین یان پارەدانی تۆمارکراوی هەیە');
     }
     if (await confirm(context, 'دڵنیایت لە سڕینەوە؟')) {
+      db.log('supplier', 'delete', 'دابینکەر سڕایەوە — ${_row['name']}', ref: picked);
       db.x('DELETE FROM suppliers WHERE id=?', [picked]);
       picked = null;
       appState.changed();
@@ -65,8 +70,9 @@ class _SuppliersPageState extends State<SuppliersPage> {
     if (!_need()) return;
     final sid = picked!;
     final r = await payDialog(context, 'دانی پارە — ${_row['name']}', db.supplierBalance(sid), caption: 'قەرزمان لایە');
-    if (r == null) return;
-    db.x('INSERT INTO supplier_payments(date,supplier_id,amount,note) VALUES(?,?,?,?)', [r.$1, sid, r.$2, r.$3]);
+    if (r == null || !mounted || !dayOpen(context, r.$1)) return;
+    final pid = db.x('INSERT INTO supplier_payments(date,supplier_id,amount,note) VALUES(?,?,?,?)', [r.$1, sid, r.$2, r.$3]);
+    db.log('payment', 'add', 'دانی پارە بە ${_row['name']} — ${money(r.$2)}', ref: pid, amount: -r.$2);
     appState.changed();
     toast('${money(r.$2)} درا');
   }
@@ -83,12 +89,17 @@ class _SuppliersPageState extends State<SuppliersPage> {
             Entry(p['date'] as String,
                 'دانی پارە${(p['note'] as String?)?.isNotEmpty == true ? ' — ${p['note']}' : ''}',
                 0, toD(p['amount']), p['id'] as int),
-        ], (id) => db.x('DELETE FROM supplier_payments WHERE id=?', [id]));
+        ], (e) {
+          db.x('DELETE FROM supplier_payments WHERE id=?', [e.payId]);
+          db.log('payment', 'delete', 'پارەدان بە ${_row['name']} سڕایەوە — ${lrm(e.date)} — ${money(e.credit)}',
+              ref: e.payId, amount: e.credit);
+        });
   }
 
   Future<void> removePurchase(List<Rec> rows) async {
     if (pickedPurchase == null) return info(context, 'سەرەتا کڕینێک هەڵبژێرە');
     final pu = rows[pickedPurchase!];
+    if (!dayOpen(context, pu['date'] as String)) return;
     final it = db.one('SELECT * FROM items WHERE id=?', [pu['item_id']]);
     var text = 'ئەم کڕینە بسڕدرێتەوە؟ بڕەکەی لە مەخزەن کەم دەکرێتەوە.';
     if (it != null && toD(it['qty']) - toD(pu['qty']) < -eps) {
@@ -107,6 +118,9 @@ class _SuppliersPageState extends State<SuppliersPage> {
         db.x('UPDATE items SET qty=?, cost=? WHERE id=?', [nq, cost, it['id']]);
       }
       db.x('DELETE FROM purchases WHERE id=?', [pu['id']]);
+      db.log('purchase', 'delete',
+          'کڕین سڕایەوە — ${pu['iname']} × ${fmt(pu['qty'])} — ${pu['sn']} — ${money(toD(pu['qty']) * toD(pu['price']))}',
+          ref: pu['id'] as int, amount: toD(pu['qty']) * toD(pu['price']));
     });
     pickedPurchase = null;
     appState.changed();

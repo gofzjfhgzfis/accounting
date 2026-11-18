@@ -7,6 +7,7 @@ import '../print/docs.dart';
 import '../ui/theme.dart';
 import '../ui/widgets.dart';
 import 'dashboard.dart' show eps;
+import 'guard.dart';
 
 /// Name / phone / address / note — the same for customers and suppliers.
 Future<List<String>?> personForm(BuildContext context, String title, [Rec? r]) {
@@ -59,7 +60,7 @@ class Entry {
 
 /// Running-balance ledger shared by customers and suppliers.
 Future<void> statementDialog(BuildContext context, String title, String name,
-    List<Entry> Function() fetch, void Function(int) deletePay) {
+    List<Entry> Function() fetch, void Function(Entry) deletePay) {
   int? sel;
   return showDialog<void>(
     context: context,
@@ -107,8 +108,9 @@ Future<void> statementDialog(BuildContext context, String title, String name,
             if (sel == null || rows[sel!].payId == null) {
               return info(ctx, 'ڕیزێکی «پارەدان» هەڵبژێرە.\nپسووڵە و کڕین لە بەشی خۆیان دەسڕدرێنەوە.');
             }
+            if (!dayOpen(ctx, rows[sel!].date)) return;
             if (await confirm(ctx, 'ئەم پارەدانە بسڕدرێتەوە؟')) {
-              deletePay(rows[sel!].payId!);
+              deletePay(rows[sel!]);
               appState.changed();
               set(() => sel = null);
             }
@@ -172,25 +174,30 @@ class _CustomersPageState extends State<CustomersPage> {
     final v = await personForm(context, 'کڕیاری نوێ');
     if (v == null) return;
     picked = db.x('INSERT INTO customers(name,phone,address,note) VALUES(?,?,?,?)', v);
+    db.log('customer', 'add', 'کڕیاری نوێ — ${v[0]}${v[1].isEmpty ? '' : ' — ${lrm(v[1])}'}', ref: picked);
     appState.changed();
     toast('کڕیار زیادکرا');
   }
 
   Future<void> edit() async {
     if (!_need()) return;
-    final v = await personForm(context, 'دەستکاری کڕیار', _row);
+    final old = _row;
+    final v = await personForm(context, 'دەستکاری کڕیار', old);
     if (v == null) return;
     db.x('UPDATE customers SET name=?,phone=?,address=?,note=? WHERE id=?', [...v, picked]);
+    db.log('customer', 'edit', 'دەستکاری کڕیار — ${old['name']}${old['name'] == v[0] ? '' : ' ← ${v[0]}'}', ref: picked);
     appState.changed();
   }
 
   Future<void> remove() async {
     if (!_need()) return;
     if (db.val('SELECT COUNT(*) FROM invoices WHERE customer_id=?', [picked]) > 0 ||
-        db.val('SELECT COUNT(*) FROM payments WHERE customer_id=?', [picked]) > 0) {
-      return info(context, 'ناتوانرێت بسڕدرێتەوە — پسووڵە یان پارەدانی تۆمارکراوی هەیە');
+        db.val('SELECT COUNT(*) FROM payments WHERE customer_id=?', [picked]) > 0 ||
+        db.val('SELECT COUNT(*) FROM returns WHERE customer_id=?', [picked]) > 0) {
+      return info(context, 'ناتوانرێت بسڕدرێتەوە — پسووڵە، پارەدان یان گەڕاندنەوەی تۆمارکراوی هەیە');
     }
     if (await confirm(context, 'دڵنیایت لە سڕینەوە؟')) {
+      db.log('customer', 'delete', 'کڕیار سڕایەوە — ${_row['name']}', ref: picked);
       db.x('DELETE FROM customers WHERE id=?', [picked]);
       picked = null;
       appState.changed();
@@ -201,8 +208,9 @@ class _CustomersPageState extends State<CustomersPage> {
     if (!_need()) return;
     final cid = picked!;
     final r = await payDialog(context, 'وەرگرتنی پارە — ${_row['name']}', db.balance(cid));
-    if (r == null) return;
-    db.x('INSERT INTO payments(date,customer_id,amount,note) VALUES(?,?,?,?)', [r.$1, cid, r.$2, r.$3]);
+    if (r == null || !mounted || !dayOpen(context, r.$1)) return;
+    final pid = db.x('INSERT INTO payments(date,customer_id,amount,note) VALUES(?,?,?,?)', [r.$1, cid, r.$2, r.$3]);
+    db.log('payment', 'add', 'وەرگرتنی پارە لە ${_row['name']} — ${money(r.$2)}', ref: pid, amount: r.$2);
     appState.changed();
     toast('${money(r.$2)} وەرگیرا');
   }
@@ -217,7 +225,14 @@ class _CustomersPageState extends State<CustomersPage> {
             Entry(p['date'] as String,
                 'وەرگرتنی پارە${(p['note'] as String?)?.isNotEmpty == true ? ' — ${p['note']}' : ''}',
                 0, toD(p['amount']), p['id'] as int),
-        ], (id) => db.x('DELETE FROM payments WHERE id=?', [id]));
+          for (final r in db.q('SELECT * FROM returns WHERE customer_id=?', [cid]))
+            Entry(r['date'] as String, 'گەڕاندنەوە ${no(r['id'])} — پسووڵە ${no(r['invoice_id'])}',
+                toD(r['refund']), toD(r['total'])),
+        ], (e) {
+          db.x('DELETE FROM payments WHERE id=?', [e.payId]);
+          db.log('payment', 'delete', 'پارەدانی ${_row['name']} سڕایەوە — ${lrm(e.date)} — ${money(e.credit)}',
+              ref: e.payId, amount: e.credit);
+        });
   }
 
   @override

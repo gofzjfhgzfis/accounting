@@ -13,6 +13,8 @@ import 'package:material_ui/material_ui.dart';
 import 'core/config.dart';
 import 'core/db.dart';
 import 'core/fmt.dart';
+import 'pages/activity.dart';
+import 'pages/cash.dart';
 import 'pages/dashboard.dart';
 import 'pages/expenses.dart';
 import 'pages/inventory.dart';
@@ -208,7 +210,9 @@ const pages = [
   PageInfo('مەخزەن', 'کاڵاکان، بارکۆد، کڕین و ئاگاداری کەمبوون', Icons.inventory_2_outlined),
   PageInfo('دابینکەران', 'قەرزی دابینکەران و مێژووی کڕین', Icons.local_shipping_outlined),
   PageInfo('مەسروفات و مووچە', 'خەرجییەکان و کارمەندان', Icons.account_balance_wallet_outlined),
+  PageInfo('سندوق', 'پارەی سندوق و داخستنی ڕۆژ', Icons.point_of_sale_outlined),
   PageInfo('ڕاپۆرت', 'قازانج، فرۆشتن و هەناردەکردن', Icons.bar_chart_rounded),
+  PageInfo('تۆماری چالاکی', 'هەموو گۆڕانکارییەک، کەی و لە کوێ', Icons.history),
   PageInfo('ڕێکخستن', 'زانیاری دووکان، پاراستن و باکئەپ', Icons.tune),
 ];
 
@@ -238,15 +242,20 @@ class ShellState extends State<Shell> {
     themeName.value = t;
   }
 
+  // Deliberately not `const`: a fresh widget each time makes the page read the
+  // database again whenever appState says something changed.
+  // ignore_for_file: prefer_const_constructors
   Widget _page() => switch (index) {
-        0 => const DashboardPage(),
+        0 => DashboardPage(),
         1 => SalesPage(key: salesKey),
-        2 => const CustomersPage(),
-        3 => const InventoryPage(),
-        4 => const SuppliersPage(),
-        5 => const ExpensesPage(),
-        6 => const ReportsPage(),
-        _ => const SettingsPage(),
+        2 => CustomersPage(),
+        3 => InventoryPage(),
+        4 => SuppliersPage(),
+        5 => ExpensesPage(),
+        6 => CashPage(),
+        7 => ReportsPage(),
+        8 => ActivityPage(),
+        _ => SettingsPage(),
       };
 
   @override
@@ -257,8 +266,9 @@ class ShellState extends State<Shell> {
         const SingleActivator(LogicalKeyboardKey.keyN, control: true): newInvoice,
         const SingleActivator(LogicalKeyboardKey.f2): newInvoice,
         const SingleActivator(LogicalKeyboardKey.f5): appState.changed,
-        for (var i = 0; i < pages.length; i++)
+        for (var i = 0; i < pages.length && i < 9; i++)
           SingleActivator(LogicalKeyboardKey(LogicalKeyboardKey.digit1.keyId + i), control: true): () => go(i),
+        if (pages.length > 9) const SingleActivator(LogicalKeyboardKey.digit0, control: true): () => go(9),
       },
       child: Focus(
         autofocus: true,
@@ -310,7 +320,7 @@ class ShellState extends State<Shell> {
         const SizedBox(height: 22),
         for (var i = 0; i < pages.length; i++) ...[
           _navItem(context, i),
-          if (i == 1 || i == 4 || i == 6) const SizedBox(height: 10),   // sell / stock / money groups
+          if (i == 1 || i == 4 || i == 8) const SizedBox(height: 8),   // sell / stock / money groups
         ],
         const Spacer(),
         TextButton.icon(
@@ -331,7 +341,7 @@ class ShellState extends State<Shell> {
     final c = context.pal;
     final on = i == index;
     return Tooltip(
-      message: 'Ctrl+${i + 1}',
+      message: 'Ctrl+${i < 9 ? i + 1 : 0}',
       waitDuration: const Duration(seconds: 1),
       child: InkWell(
         borderRadius: BorderRadius.circular(10),

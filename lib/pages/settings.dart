@@ -34,6 +34,7 @@ class _SettingsPageState extends State<SettingsPage> {
     db.set('address', address.text.trim());
     db.set('currency', currency.text.trim());
     db.set('usd', rate.n);
+    db.log('settings', 'edit', 'زانیاری دووکان پاشەکەوتکرا — ${company.text.trim()}، نرخی دۆلار ${fmt(rate.n)}');
     appState.changed();
     toast('پاشەکەوتکرا');
   }
@@ -70,6 +71,7 @@ class _SettingsPageState extends State<SettingsPage> {
     if (n == null) return;
     if (n.length < 4) return mounted ? info(context, 'لانیکەم ٤ پیت یان ژمارە بنووسە') : null;
     db.set('pin', pinHash(n));
+    db.log('settings', 'edit', 'ژمارەی نهێنی دانرا یان گۆڕدرا');
     setState(() {});
     toast('قفڵ چالاککرا');
   }
@@ -79,6 +81,7 @@ class _SettingsPageState extends State<SettingsPage> {
     if (old == null) return;
     if (pinHash(old) != db.get('pin')) return mounted ? info(context, 'ژمارەی نهێنی هەڵەیە') : null;
     db.set('pin', '');
+    db.log('settings', 'delete', 'قفڵی ژمارەی نهێنی لابرا');
     setState(() {});
     toast('قفڵ لابرا');
   }
@@ -88,6 +91,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final d = await getDirectoryPath(confirmButtonText: 'هەڵبژاردن');
     if (d == null) return;
     db.set('backup', d);
+    db.log('settings', 'edit', 'فۆڵدەری باکئەپ — $d');
     setState(() {});
   }
 
@@ -98,7 +102,9 @@ class _SettingsPageState extends State<SettingsPage> {
       return;
     }
     try {
-      toast('باکئەپ درووستکرا: ${db.backupTo(d)}');
+      final name = db.backupTo(d);
+      db.log('backup', 'add', 'باکئەپ — $name');
+      toast('باکئەپ درووستکرا: $name');
     } catch (e) {
       info(context, 'باکئەپ سەرکەوتوو نەبوو:\n$e');
     }
@@ -119,6 +125,7 @@ class _SettingsPageState extends State<SettingsPage> {
       db.close();
       File(f.path).copySync(dbPath);
       openDb();
+      db.log('backup', 'edit', 'داتا لە باکئەپ گەڕێندرایەوە — ${p.basename(f.path)} (داتای پێشوو: before_restore.db)');
     } catch (e) {
       openDb();
       if (mounted) info(context, 'گەڕاندنەوە سەرکەوتوو نەبوو:\n$e');
@@ -148,6 +155,7 @@ class _SettingsPageState extends State<SettingsPage> {
     db.close();
     saveCfg({'db_path': target});
     openDb();
+    db.log('settings', 'edit', 'شوێنی داتابەیس گۆڕدرا — $target');
     appState.changed();
     toast('شوێنی داتابەیس گۆڕدرا');
   }

@@ -53,6 +53,12 @@ String isoDate(DateTime d) =>
 
 String today() => isoDate(DateTime.now());
 
+/// The ISO date one day before [iso].
+String dayBefore(String iso) {
+  final d = DateTime.parse(iso);
+  return isoDate(DateTime(d.year, d.month, d.day - 1));
+}
+
 DateTime monthStart([DateTime? d]) {
   d ??= DateTime.now();
   return DateTime(d.year, d.month, 1);

@@ -9,6 +9,7 @@ import '../ui/barcode_view.dart';
 import '../ui/theme.dart';
 import '../ui/widgets.dart';
 import 'dashboard.dart' show eps;
+import 'guard.dart';
 
 class InventoryPage extends StatefulWidget {
   const InventoryPage({super.key});
@@ -104,15 +105,26 @@ class _InventoryPageState extends State<InventoryPage> {
     final v = await form();
     if (v == null) return;
     picked = db.x('INSERT INTO items(name,kind,unit,barcode,qty,cost,price,minq) VALUES(?,?,?,?,?,?,?,?)', v);
+    db.log('item', 'add', 'کاڵای نوێ — ${v[0]} — بڕ ${fmt(v[4])}، نرخ ${money(v[6])}', ref: picked);
     appState.changed();
     toast('کاڵا زیادکرا');
   }
 
   Future<void> edit() async {
     if (!_need()) return;
-    final v = await form(_row);
+    final old = _row;
+    final v = await form(old);
     if (v == null) return;
     db.x('UPDATE items SET name=?,kind=?,unit=?,barcode=?,qty=?,cost=?,price=?,minq=? WHERE id=?', [...v, picked]);
+    // spell out what changed, so a quiet stock or price edit can be traced
+    final changes = [
+      if (old['name'] != v[0]) 'ناو ← ${v[0]}',
+      if ((toD(old['qty']) - toD(v[4])).abs() > eps) 'بڕ ${fmt(old['qty'])} ← ${fmt(v[4])}',
+      if ((toD(old['cost']) - toD(v[5])).abs() > eps) 'تێچوو ${fmt(old['cost'])} ← ${fmt(v[5])}',
+      if ((toD(old['price']) - toD(v[6])).abs() > eps) 'نرخ ${fmt(old['price'])} ← ${fmt(v[6])}',
+      if ((old['barcode'] ?? '') != (v[3] ?? '')) 'بارکۆد ← ${v[3] ?? '—'}',
+    ];
+    db.log('item', 'edit', 'دەستکاری کاڵا — ${old['name']}${changes.isEmpty ? '' : ' — ${changes.join('، ')}'}', ref: picked);
     appState.changed();
   }
 
@@ -123,6 +135,7 @@ class _InventoryPageState extends State<InventoryPage> {
       return info(context, 'ناتوانرێت بسڕدرێتەوە — ئەم کاڵایە لە پسووڵە یان کڕیندا بەکارهاتووە');
     }
     if (await confirm(context, 'دڵنیایت لە سڕینەوە؟')) {
+      db.log('item', 'delete', 'کاڵا سڕایەوە — ${_row['name']}', ref: picked);
       db.x('DELETE FROM items WHERE id=?', [picked]);
       picked = null;
       appState.changed();
@@ -169,15 +182,18 @@ class _InventoryPageState extends State<InventoryPage> {
         return true;
       },
     );
-    if (r != true) return;
+    if (r != true || !mounted || !dayOpen(context, date.iso)) return;
     final t = qty.n * price.n, onHand = toD(it['qty']) > 0 ? toD(it['qty']) : 0.0;
     // weighted average cost of what is on the shelf after this delivery
     final newCost = (onHand * toD(it['cost']) + t) / (onHand + qty.n);
     db.tx(() {
       final sid = db.supplierId(sup.text);
       db.x('UPDATE items SET qty=qty+?, cost=? WHERE id=?', [qty.n, newCost, iid]);
-      db.x('INSERT INTO purchases(date,supplier,supplier_id,item_id,qty,price,paid,note) VALUES(?,?,?,?,?,?,?,?)',
+      final pid = db.x('INSERT INTO purchases(date,supplier,supplier_id,item_id,qty,price,paid,note) VALUES(?,?,?,?,?,?,?,?)',
           [date.iso, sup.text.trim(), sid, iid, qty.n, price.n, paid.n.clamp(0, t), note.text.trim()]);
+      db.log('purchase', 'add',
+          'کڕین — ${it['name']} × ${fmt(qty.n)}${sup.text.trim().isEmpty ? '' : ' — ${sup.text.trim()}'} — ${money(t)}، دراو ${money(paid.n.clamp(0, t))}',
+          ref: pid, amount: t);
     });
     appState.changed();
     toast('کڕینەکە تۆمارکرا');
@@ -191,6 +207,7 @@ class _InventoryPageState extends State<InventoryPage> {
       if (!await confirm(context, '«${it['name']}» بارکۆدی نییە.\nژمارەیەکی نوێی بۆ درووست بکەم؟')) return;
       code = generateCode((x) => db.itemByCode(x) != null);
       db.x('UPDATE items SET barcode=? WHERE id=?', [code, picked]);
+      db.log('item', 'edit', 'بارکۆدی نوێ — ${it['name']} — $code', ref: picked);
       appState.changed();
     }
     if (mounted) await labelsDialog(context, it['name'] as String, code, money(it['price']));

@@ -13,6 +13,7 @@ import 'package:oil_shop/core/db.dart';
 import 'package:oil_shop/core/fmt.dart';
 import 'package:oil_shop/main.dart' as app;
 import 'package:oil_shop/pages/reports.dart';
+import 'package:oil_shop/ui/widgets.dart' show NumBox;
 import 'package:oil_shop/pages/sales.dart';
 import 'package:oil_shop/print/docs.dart';
 import 'package:oil_shop/print/render.dart';
@@ -118,6 +119,65 @@ void main() {
 
     await press(t, 'پسووڵەکان');
     await shot(t, 'dark_sale_list');
+
+    // ---- return one of the first item ----
+    expect(db.val("SELECT COUNT(*) FROM activity WHERE kind='sale' AND action='add' AND ref=?", [inv['id']]), 1);
+    await t.tap(find.text('پسووڵە ${no(inv['id'])}').first);
+    await t.pumpAndSettle();
+    await press(t, 'گەڕاندنەوە');
+    await t.enterText(find.byType(NumBox).first, '1');
+    await t.pumpAndSettle();
+    await shot(t, 'dark_return');
+    final stock1 = toD(db.one('SELECT qty FROM items WHERE id=?', [item['id']])!['qty']);
+    final bal1 = db.balance(cust['id'] as int);
+    await press(t, 'تۆمارکردنی گەڕاندنەوە');
+    await press(t, 'باشە');
+    final ret = db.one('SELECT * FROM returns ORDER BY id DESC')!;
+    final f = toD(inv['total']) / toD(inv['subtotal']);
+    expect(ret['invoice_id'], inv['id']);
+    expect(toD(ret['total']), closeTo(toD(item['price']) * f, .01));
+    expect(toD(ret['refund']), 0);   // the customer owes money, so the return comes off the debt
+    expect(toD(db.one('SELECT qty FROM items WHERE id=?', [item['id']])!['qty']), closeTo(stock1 + 1, .001));
+    expect(db.balance(cust['id'] as int), closeTo(bal1 - toD(ret['total']), .01));
+    expect(db.val("SELECT COUNT(*) FROM activity WHERE kind='return' AND ref=?", [ret['id']]), 1);
+    await t.runAsync(() async => File('$out/return.pdf').writeAsBytesSync(await docPdf(returnDoc(ret['id'] as int))));
+    await press(t, 'گەڕاندنەوەکان');
+    await shot(t, 'dark_returns');
+
+    // ---- cash box: close the day, the day locks, reopen ----
+    await nav(t, 'سندوق');
+    await shot(t, 'dark_cash');
+    final expectedCash = db.cashAt(today());
+    await press(t, 'داخستنی ڕۆژ');
+    await shot(t, 'dark_close');
+    await press(t, 'داخستن');
+    await press(t, 'باشە');
+    final cl = db.lastClosing!;
+    expect(cl['date'], today());
+    expect(toD(cl['expected']), closeTo(expectedCash, .01));
+    expect(db.isClosed(today()), isTrue);
+    await t.runAsync(() async => File('$out/closing.pdf').writeAsBytesSync(await docPdf(closingDoc(today()))));
+    await shot(t, 'dark_cash_closed');
+    expect(find.text('ئەمڕۆ داخراوە'), findsOneWidget);   // the page itself redrew
+
+    await nav(t, 'کڕیاران');
+    await t.tap(find.text(cust['name'] as String).first);
+    await t.pumpAndSettle();
+    final pays = db.val('SELECT COUNT(*) FROM payments');
+    await press(t, 'وەرگرتنی پارە');
+    await press(t, 'پاشەکەوتکردن');
+    expect(find.textContaining('داخراوە'), findsWidgets);
+    await press(t, 'باشە');
+    expect(db.val('SELECT COUNT(*) FROM payments'), pays);   // refused on a closed day
+
+    await nav(t, 'سندوق');
+    await press(t, 'هەڵوەشاندنەوەی دوایین داخستن');
+    await press(t, 'بەڵێ');
+    expect(db.isClosed(today()), isFalse);
+    expect(db.val("SELECT COUNT(*) FROM activity WHERE kind='cash' AND action IN ('close','reopen')"), 2);
+
+    await nav(t, 'تۆماری چالاکی');
+    await shot(t, 'dark_activity');
 
     // ---- every other page ----
     await nav(t, 'کڕیاران');

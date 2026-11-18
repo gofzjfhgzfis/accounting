@@ -6,6 +6,7 @@ import '../core/fmt.dart';
 import '../ui/theme.dart';
 import '../ui/widgets.dart';
 import 'dashboard.dart' show eps;
+import 'guard.dart';
 
 const expenseCats = ['کارەبا', 'سووتەمەنی', 'کرێ', 'گواستنەوە', 'چاککردنەوە', 'بازرگانی', 'هیتر'];
 
@@ -53,23 +54,32 @@ class _ExpensesPageState extends State<ExpensesPage> {
 
   Future<void> addExp() async {
     final v = await expForm();
-    if (v == null) return;
-    db.x('INSERT INTO expenses(date,category,amount,note) VALUES(?,?,?,?)', v);
+    if (v == null || !mounted || !dayOpen(context, v[0] as String)) return;
+    final id = db.x('INSERT INTO expenses(date,category,amount,note) VALUES(?,?,?,?)', v);
+    db.log('expense', 'add', 'مەسروف — ${v[1]} — ${money(v[2])}', ref: id, amount: toD(v[2]));
     appState.changed();
     toast('مەسروفەکە تۆمارکرا');
   }
 
   Future<void> editExp() async {
     if (pickedExp == null) return info(context, 'سەرەتا مەسروفێک هەڵبژێرە');
-    final v = await expForm(db.one('SELECT * FROM expenses WHERE id=?', [pickedExp]));
-    if (v == null) return;
+    final old = db.one('SELECT * FROM expenses WHERE id=?', [pickedExp])!;
+    if (!dayOpen(context, old['date'] as String)) return;
+    final v = await expForm(old);
+    if (v == null || !mounted || !dayOpen(context, v[0] as String)) return;
     db.x('UPDATE expenses SET date=?,category=?,amount=?,note=? WHERE id=?', [...v, pickedExp]);
+    db.log('expense', 'edit', 'دەستکاری مەسروف — ${old['category']} ${money(old['amount'])} ← ${v[1]} ${money(v[2])}',
+        ref: pickedExp, amount: toD(v[2]));
     appState.changed();
   }
 
   Future<void> removeExp() async {
     if (pickedExp == null) return info(context, 'سەرەتا مەسروفێک هەڵبژێرە');
+    final old = db.one('SELECT * FROM expenses WHERE id=?', [pickedExp])!;
+    if (!dayOpen(context, old['date'] as String)) return;
     if (await confirm(context, 'بسڕدرێتەوە؟')) {
+      db.log('expense', 'delete', 'مەسروف سڕایەوە — ${old['category']} — ${lrm(old['date'])} — ${money(old['amount'])}',
+          ref: pickedExp, amount: toD(old['amount']));
       db.x('DELETE FROM expenses WHERE id=?', [pickedExp]);
       pickedExp = null;
       appState.changed();
@@ -99,7 +109,8 @@ class _ExpensesPageState extends State<ExpensesPage> {
   Future<void> addEmp() async {
     final v = await empForm();
     if (v == null) return;
-    db.x('INSERT INTO employees(name,position,salary,phone) VALUES(?,?,?,?)', v);
+    final id = db.x('INSERT INTO employees(name,position,salary,phone) VALUES(?,?,?,?)', v);
+    db.log('employee', 'add', 'کارمەندی نوێ — ${v[0]} — مووچە ${money(v[2])}', ref: id);
     appState.changed();
     toast('کارمەند زیادکرا');
   }
@@ -109,12 +120,15 @@ class _ExpensesPageState extends State<ExpensesPage> {
     final v = await empForm(db.one('SELECT * FROM employees WHERE id=?', [pickedEmp]));
     if (v == null) return;
     db.x('UPDATE employees SET name=?,position=?,salary=?,phone=? WHERE id=?', [...v, pickedEmp]);
+    db.log('employee', 'edit', 'دەستکاری کارمەند — ${v[0]} — مووچە ${money(v[2])}', ref: pickedEmp);
     appState.changed();
   }
 
   Future<void> removeEmp() async {
     if (pickedEmp == null) return info(context, 'سەرەتا کارمەندێک هەڵبژێرە');
     if (await confirm(context, 'کارمەندەکە بسڕدرێتەوە؟\nمووچە دراوەکانی لە ڕاپۆرتدا دەمێننەوە.')) {
+      db.log('employee', 'delete', 'کارمەند سڕایەوە — ${db.one('SELECT name FROM employees WHERE id=?', [pickedEmp])?['name']}',
+          ref: pickedEmp);
       db.x('DELETE FROM employees WHERE id=?', [pickedEmp]);
       pickedEmp = null;
       appState.changed();
@@ -135,8 +149,9 @@ class _ExpensesPageState extends State<ExpensesPage> {
       ],
       onSave: (_) => amount.n > 0 ? true : null,
     );
-    if (ok != true) return;
-    db.x('INSERT INTO salaries(date,employee_id,amount,note) VALUES(?,?,?,?)', [date.iso, e['id'], amount.n, note.text.trim()]);
+    if (ok != true || !mounted || !dayOpen(context, date.iso)) return;
+    final sid = db.x('INSERT INTO salaries(date,employee_id,amount,note) VALUES(?,?,?,?)', [date.iso, e['id'], amount.n, note.text.trim()]);
+    db.log('salary', 'add', 'مووچە — ${e['name']} — ${money(amount.n)}', ref: sid, amount: amount.n);
     appState.changed();
     toast('مووچەکە تۆمارکرا');
   }
@@ -264,8 +279,12 @@ class _ExpensesPageState extends State<ExpensesPage> {
         const Spacer(),
         Btn.danger('سڕینەوەی مووچە', () async {
           if (pickedSal == null) return info(context, 'سەرەتا ڕیزێکی مووچە هەڵبژێرە');
+          final sal = sals[pickedSal!];
+          if (!dayOpen(context, sal['date'] as String)) return;
           if (await confirm(context, 'ئەم مووچەیە بسڕدرێتەوە؟')) {
-            db.x('DELETE FROM salaries WHERE id=?', [sals[pickedSal!]['id']]);
+            db.log('salary', 'delete', 'مووچە سڕایەوە — ${sal['n']} — ${lrm(sal['date'])} — ${money(sal['amount'])}',
+                ref: sal['id'] as int, amount: toD(sal['amount']));
+            db.x('DELETE FROM salaries WHERE id=?', [sal['id']]);
             pickedSal = null;
             appState.changed();
           }

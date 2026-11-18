@@ -278,6 +278,68 @@ Doc invoiceDoc(int iid) {
   );
 }
 
+Doc returnDoc(int rid) {
+  final r = db.one('SELECT * FROM returns WHERE id=?', [rid])!;
+  final cus = db.one('SELECT * FROM customers WHERE id=?', [r['customer_id']]);
+  final rows = db.q("SELECT ri.*, IFNULL(it.name,'—') name, IFNULL(it.unit,'') unit FROM return_items ri "
+      'LEFT JOIN items it ON it.id=ri.item_id WHERE ri.return_id=?', [rid]);
+  final cur = db.get('currency');
+  String m(Object? v) => '${fmt(v)} $cur';
+  final credit = toD(r['total']) - toD(r['refund']);
+  return Doc(
+    'پسووڵەی گەڕاندنەوە',
+    'ژمارە: ${lrm(rid)}   ·   بۆ پسووڵە: ${no(r['invoice_id'])}   ·   بەروار: ${lrm(r['date'])}'
+        '   ·   کڕیار: ${cus?['name'] ?? walkIn}',
+    [
+      DocTable(['ژ', 'کاڵا', 'بڕ', 'نرخ', 'کۆ'], [2, 12, 4, 4, 5], [
+        for (var i = 0; i < rows.length; i++)
+          [
+            '${i + 1}', rows[i]['name'] as String, '${fmt(rows[i]['qty'])} ${rows[i]['unit']}'.trim(),
+            fmt(rows[i]['price']), fmt(toD(rows[i]['qty']) * toD(rows[i]['price'])),
+          ]
+      ]),
+      Gap(10),
+      Totals([
+        ('کۆی گەڕاندنەوە', m(r['total']), true, _ink, true),
+        ('پارەی گەڕێنراوە', m(r['refund']), false, _ink, false),
+        if (credit > 0.004) ('کەمکرایەوە لە قەرز', m(credit), true, _ink, false),
+      ]),
+      if ((r['note'] as String?)?.isNotEmpty == true) Para('هۆکار: ${r['note']}', color: _faint),
+    ],
+  );
+}
+
+/// End-of-day cash report for the closing on [date].
+Doc closingDoc(String date) {
+  final c = db.one('SELECT * FROM closings WHERE date=?', [date])!;
+  final prev = db.one('SELECT date FROM closings WHERE date<? ORDER BY date DESC LIMIT 1', [date]);
+  // the first closing covers only its own day
+  final moves = db.cashMoves(prev?['date'] as String? ?? dayBefore(date), date);
+  final cur = db.get('currency');
+  String m(Object? v) => '${fmt(v)} $cur';
+  final diff = toD(c['counted']) - toD(c['expected']);
+  return Doc(
+    'داخستنی ڕۆژ',
+    'بەروار: ${lrm(date)}   ·   کات: ${lrm(c['at'])}',
+    [
+      Totals([
+        ('پارەی سەرەتا', m(c['opening']), false, _ink, false),
+        ('هاتن', m(c['cash_in']), false, _ink, false),
+        ('دەرچوون', m(c['cash_out']), false, _ink, false),
+        ('دەبێت هەبێت', m(c['expected']), true, _ink, true),
+        ('ژمێردرا', m(c['counted']), true, _ink, false),
+        ('جیاوازی', m(diff), true, diff.abs() > 0.004 ? _red : _ink, false),
+      ]),
+      if ((c['note'] as String?)?.isNotEmpty == true) Para('تێبینی: ${c['note']}', color: _faint),
+      Heading('مامەڵەکانی سندوق'),
+      DocTable(['بەروار', 'ڕوونکردنەوە', 'هاتن', 'دەرچوون'], [3, 10, 4, 4], [
+        for (final mv in moves)
+          [lrm(mv.date), mv.text, mv.amount > 0 ? fmt(mv.amount) : '', mv.amount < 0 ? fmt(-mv.amount) : '']
+      ]),
+    ],
+  );
+}
+
 /// [rows]: (date, text, debit, credit, running balance) already formatted.
 Doc statementDoc(String title, String name, List<List<String>> rows, double balance) => Doc(
       title,
