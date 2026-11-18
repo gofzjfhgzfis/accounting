@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 const appTitle = 'سیستەمی دووکانی جوملە';
-const appVersion = '٣٫٠٫١';
+const appVersion = '٣٫١';
 
 /// OILSHOP_HOME lets tests run against a throw-away folder.
 final String homeDir = Platform.environment['OILSHOP_HOME'] ??
